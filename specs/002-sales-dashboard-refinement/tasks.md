@@ -73,16 +73,16 @@
 
 **Independent Test**: Drag a sale card between columns and verify immediate status sync on board + list/detail, plus stale rejection rollback.
 
-- [ ] T031 [P] [US3] Keep GraphQL mutation contract in `back/schema.graphql` and include stale guard field in status mutation arguments
-- [ ] T032 [US3] Add stale timestamp validation and conflict error in `back/src/modules/sales/sales.service.ts:updateSaleStatus`
-- [ ] T033 [US3] Ensure list/detail payloads include `updatedAt` for concurrency in `back/src/modules/sales/sales.resolver.ts`
-- [ ] T034 [P] [US3] Add status transition constants and validation helpers in `front/src/lib/sales/status.ts`
-- [ ] T035 [P] [US3] Refactor board column model to a mapped enum in `front/src/app/dashboard/sales`
-- [ ] T036 [US3] Implement drag-drop interaction container in `front/src/components/sales/BoardDraggableBoard.tsx`
-- [ ] T037 [P] [US3] Integrate `@dnd-kit` drag context and collision handlers in `front/src/components/sales/BoardDraggableBoard.tsx`
-- [ ] T038 [US3] Wire drop handler to mutation call in `front/src/store/sales` and pass `expected_updated_at`
-- [ ] T039 [US3] Add optimistic move + rollback state handling and warning event in `front/src/app/dashboard/sales`
-- [ ] T040 [US3] Invalidate and refresh affected sale queries after board move in `front/src/store/sales/sales.queries.ts`
+- [X] T031 [P] [US3] Keep GraphQL mutation contract in `back/schema.graphql` and include stale guard field in status mutation arguments
+- [X] T032 [US3] Add stale timestamp validation and conflict error in `back/src/modules/sales/sales.service.ts:updateSaleStatus`
+- [X] T033 [US3] Ensure list/detail payloads include `updatedAt` for concurrency in `back/src/modules/sales/sales.resolver.ts`
+- [X] T034 [P] [US3] Add status transition constants and validation helpers in `front/src/lib/sales/status.ts`
+- [X] T035 [P] [US3] Refactor board column model to a mapped enum in `front/src/app/dashboard/sales`
+- [X] T036 [US3] Implement drag-drop interaction container in `front/src/components/sales/BoardDraggableBoard.tsx`
+- [X] T037 [P] [US3] Integrate `@dnd-kit` drag context and collision handlers in `front/src/components/sales/BoardDraggableBoard.tsx`
+- [X] T038 [US3] Wire drop handler to mutation call in `front/src/store/sales` and pass `expected_updated_at`
+- [X] T039 [US3] Add optimistic move + rollback state handling and warning event in `front/src/app/dashboard/sales`
+- [X] T040 [US3] Invalidate and refresh affected sale queries after board move in `front/src/store/sales/sales.queries.ts`
 
 ## Phase 6: User Story 4 - Tag Suggestion Search with Multi-Select + Typing (Priority: P4)
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { SalesBoard } from '@/components/sales/SalesBoard';
+import { BoardDraggableBoard } from '@/components/sales/BoardDraggableBoard';
 import { SalesPageErrorBoundary } from '@/components/sales/SalesPageErrorBoundary';
 import { SalesFilters } from '@/components/sales/SalesFilters';
 import { SalesLoadingStates } from '@/components/sales/SalesLoadingStates';
@@ -26,6 +26,7 @@ export const SalesPage = () => {
     setTagIds,
   } = useSalesListStore();
   const [salesView, setSalesView] = useState<SalesView>('table');
+  const [boardWarning, setBoardWarning] = useState<string | null>(null);
 
   return (
     <SalesPageErrorBoundary screenName="Sales list" onRetry={() => void refetch()} retryMessage="Reload list">
@@ -60,8 +61,17 @@ export const SalesPage = () => {
           emptyMessage="No sales found for this filter set."
           onRetry={() => void refetch()}
         >
-          {salesView === 'table' ? <SalesTable sales={sales} /> : <SalesBoard sales={sales} />}
+          {salesView === 'table' ? (
+            <SalesTable sales={sales} />
+          ) : (
+            <BoardDraggableBoard sales={sales} onWarning={setBoardWarning} />
+          )}
         </SalesLoadingStates>
+        {boardWarning && (
+          <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-sm text-amber-700" role="status">
+            {boardWarning}
+          </p>
+        )}
 
         <p className="text-sm text-slate-600" aria-live="polite">
           Showing {sales.length} of {totalCount} sales.
