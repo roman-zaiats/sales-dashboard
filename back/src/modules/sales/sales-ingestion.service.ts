@@ -9,7 +9,7 @@ import { SaleSourceRecord, SaleStatus } from './sales.types';
 type MongoSourceRecord = Record<string, unknown>;
 
 type IngestionCursorState = {
-  sourceCreatedAt?: string | null;
+  createdAt?: string | null;
   externalSaleId?: string | null;
 };
 
@@ -173,7 +173,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
     }
 
     const query: Record<string, unknown> = {};
-    const cursorDate = this.parseDateString(cursor.sourceCreatedAt);
+    const cursorDate = this.parseDateString(cursor.createdAt);
 
     if (!cursorDate) {
       if (cursor.externalSaleId) {
@@ -221,18 +221,18 @@ export class SalesIngestionService implements OnApplicationShutdown {
     }
 
     const ordered = [...records].sort((left, right) => {
-      const leftDate = this.parseDateString(left.sourceCreatedAt);
-      const rightDate = this.parseDateString(right.sourceCreatedAt);
+      const leftDate = this.parseDateString(left.createdAt);
+      const rightDate = this.parseDateString(right.createdAt);
 
       if (leftDate && rightDate && leftDate.getTime() !== rightDate.getTime()) {
         return leftDate.getTime() - rightDate.getTime();
       }
 
-      if (!left.sourceCreatedAt && right.sourceCreatedAt) {
+      if (!left.createdAt && right.createdAt) {
         return 1;
       }
 
-      if (left.sourceCreatedAt && !right.sourceCreatedAt) {
+      if (left.createdAt && !right.createdAt) {
         return -1;
       }
 
@@ -246,7 +246,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
     }
 
     return {
-      sourceCreatedAt: newest.sourceCreatedAt ?? null,
+      createdAt: newest.createdAt ?? null,
       externalSaleId: newest.externalSaleId,
     };
   }
@@ -260,7 +260,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
       const parsed = JSON.parse(rawValue) as IngestionCursorState;
 
       return {
-        sourceCreatedAt: parsed.sourceCreatedAt ?? null,
+        createdAt: parsed.createdAt ?? null,
         externalSaleId: parsed.externalSaleId ?? null,
       };
     } catch {
@@ -271,7 +271,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
       }
 
       return {
-        sourceCreatedAt: parsedDate.toISOString(),
+        createdAt: parsedDate.toISOString(),
         externalSaleId: null,
       };
     }
@@ -279,7 +279,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
 
   private serializeIngestionCursor(state: IngestionCursorState): string {
     return JSON.stringify({
-      sourceCreatedAt: state.sourceCreatedAt ?? null,
+      createdAt: state.createdAt ?? null,
       externalSaleId: state.externalSaleId ?? null,
     });
   }
@@ -296,8 +296,8 @@ export class SalesIngestionService implements OnApplicationShutdown {
       return null;
     }
 
-    const sourceCreatedAt = this.parseDateString(record.creationDate);
-    const sourceUpdatedAt = this.parseDateString(record.statusChangeDate);
+    const createdAt = this.parseDateString(record.creationDate);
+    const updatedAt = this.parseDateString(record.statusChangeDate);
 
     return {
       externalSaleId,
@@ -308,8 +308,8 @@ export class SalesIngestionService implements OnApplicationShutdown {
       currency: this.normalizeText(record.currency),
       buyerEmail: this.normalizeText(record.buyerEmail),
       sourceStatus: this.normalizeStatus(record.status),
-      sourceCreatedAt: sourceCreatedAt ? sourceCreatedAt.toISOString() : null,
-      sourceUpdatedAt: sourceUpdatedAt ? sourceUpdatedAt.toISOString() : null,
+      createdAt: createdAt ? createdAt.toISOString() : null,
+      updatedAt: updatedAt ? updatedAt.toISOString() : null,
       sourcePayload: {
         raw: record,
         sourceId: externalSaleId,

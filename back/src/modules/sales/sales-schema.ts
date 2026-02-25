@@ -17,8 +17,6 @@ CREATE TABLE IF NOT EXISTS sales (
   filled_by_user_id UUID,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  source_created_at TIMESTAMPTZ,
-  source_updated_at TIMESTAMPTZ,
   source_sync_state TEXT
 );
 

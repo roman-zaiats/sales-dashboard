@@ -67,8 +67,6 @@ export class SalesRepository {
           filledByUserId: sales.filledByUserId,
           createdAt: sales.createdAt,
           updatedAt: sales.updatedAt,
-          sourceCreatedAt: sales.sourceCreatedAt,
-          sourceUpdatedAt: sales.sourceUpdatedAt,
           sourcePayload: sales.sourcePayload,
         })
         .from(sales)
@@ -280,8 +278,6 @@ export class SalesRepository {
         filledByUserId: sales.filledByUserId,
         createdAt: sales.createdAt,
         updatedAt: sales.updatedAt,
-        sourceCreatedAt: sales.sourceCreatedAt,
-        sourceUpdatedAt: sales.sourceUpdatedAt,
         sourcePayload: sales.sourcePayload,
       })
       .from(sales)
@@ -422,8 +418,8 @@ export class SalesRepository {
           currency: record.currency,
           buyerEmail: record.buyerEmail,
           status: record.sourceStatus ?? SaleStatus.RECEIVED,
-          sourceCreatedAt: this.parseDateField(record.sourceCreatedAt),
-          sourceUpdatedAt: this.parseDateField(record.sourceUpdatedAt),
+          createdAt: this.parseDateField(record.createdAt) ?? new Date(),
+          updatedAt: this.parseDateField(record.updatedAt) ?? new Date(),
           sourcePayload: record.sourcePayload,
           sourceSyncState,
         })),
@@ -437,8 +433,6 @@ export class SalesRepository {
           price: sql`EXCLUDED.price`,
           currency: sql`EXCLUDED.currency`,
           buyerEmail: sql`EXCLUDED.buyer_email`,
-          sourceCreatedAt: sql`EXCLUDED.source_created_at`,
-          sourceUpdatedAt: sql`EXCLUDED.source_updated_at`,
           sourcePayload: sql`EXCLUDED.source_payload`,
           sourceSyncState: sql`EXCLUDED.source_sync_state`,
           status: sales.status,
@@ -770,8 +764,6 @@ export class SalesRepository {
       filledByUserId: string | null;
       createdAt: string | Date;
       updatedAt: string | Date;
-      sourceCreatedAt: string | Date | null;
-      sourceUpdatedAt: string | Date | null;
     },
     tags: SaleTag[] = [],
     comments: SaleComment[] = [],
@@ -795,8 +787,6 @@ export class SalesRepository {
       comments,
       createdAt: this.toDateString(row.createdAt),
       updatedAt: this.toDateString(row.updatedAt),
-      sourceCreatedAt: row.sourceCreatedAt ? this.toDateString(row.sourceCreatedAt) : null,
-      sourceUpdatedAt: row.sourceUpdatedAt ? this.toDateString(row.sourceUpdatedAt) : null,
     };
   }
 

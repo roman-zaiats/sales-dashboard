@@ -47,9 +47,9 @@ export type SaleSourceRecord = {
   price: number | null;
   currency: string | null;
   buyerEmail: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
   sourceStatus: SaleStatus | null;
-  sourceCreatedAt: string | null;
-  sourceUpdatedAt: string | null;
   sourcePayload: SalesSourcePayload | null;
 };
 
@@ -60,8 +60,6 @@ export type SaleConcurrencyInput = {
 export type SaleOperationalMetadata = {
   createdAt: string;
   updatedAt: string;
-  sourceCreatedAt: string | null;
-  sourceUpdatedAt: string | null;
 };
 
 export type UserRecord = {
@@ -103,8 +101,6 @@ export type Sale = {
   createdAt: string;
   updatedAt: string;
   expectedUpdatedAt?: string | null;
-  sourceCreatedAt: string | null;
-  sourceUpdatedAt: string | null;
 };
 
 export type SaleListPayload = {

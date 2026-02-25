@@ -50,7 +50,7 @@
 - [X] T019 [US1] Update `back/src/modules/sales/sales-ingestion.service.ts` to run from unified runtime
 - [X] T020 [P] [US1] Merge operational-edit guard logic into ingestion write path in `back/src/modules/sales/sales.service.ts`
 - [X] T021 [US1] Remove leader/worker environment branching in `back/package.json` scripts and add single `start` command semantics
-- [ ] T022 [US1] Update docs of runtime behavior in `specs/002-sales-dashboard-refinement/quickstart.md`
+- [X] T022 [US1] Update docs of runtime behavior in `specs/002-sales-dashboard-refinement/quickstart.md`
 
 ## Phase 4: User Story 2 - Drizzle ORM Persistence Migration (Priority: P2)
 

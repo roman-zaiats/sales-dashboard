@@ -39,8 +39,6 @@ const salesFixture = [
     status: 'RECEIVED',
     deliveryDelayAt: null,
     problemReason: null,
-    sourceCreatedAt: '2018-10-02T04:58:44.620Z',
-    sourceUpdatedAt: '2018-10-02T04:58:44.620Z',
     createdAt: '2026-02-01T10:00:00.000Z',
     updatedAt: '2026-02-01T10:00:00.000Z',
     tags: ['vip', 'priority'],
@@ -75,8 +73,6 @@ const salesFixture = [
     status: 'COMPLETED',
     deliveryDelayAt: null,
     problemReason: null,
-    sourceCreatedAt: '2026-02-12T08:14:22.120Z',
-    sourceUpdatedAt: '2026-02-12T08:14:22.120Z',
     createdAt: '2026-02-12T08:15:00.000Z',
     updatedAt: '2026-02-13T11:20:00.000Z',
     tags: ['clear', 'online-sale'],
@@ -103,8 +99,6 @@ const salesFixture = [
     status: 'DELAYED',
     deliveryDelayAt: '2026-02-24T09:00:00.000Z',
     problemReason: null,
-    sourceCreatedAt: '2026-02-14T19:10:00.000Z',
-    sourceUpdatedAt: '2026-02-14T19:12:00.000Z',
     createdAt: '2026-02-14T19:10:00.000Z',
     updatedAt: '2026-02-15T16:32:00.000Z',
     tags: ['hold', 'vip'],
@@ -131,8 +125,6 @@ const salesFixture = [
     status: 'PROBLEM',
     deliveryDelayAt: '2026-02-20T11:30:00.000Z',
     problemReason: 'Buyer email mismatch in source feed',
-    sourceCreatedAt: '2026-02-15T02:11:00.000Z',
-    sourceUpdatedAt: '2026-02-17T04:20:00.000Z',
     createdAt: '2026-02-15T02:11:00.000Z',
     updatedAt: '2026-02-17T04:21:00.000Z',
     tags: ['problem', 'escalation'],
@@ -159,8 +151,6 @@ const salesFixture = [
     status: 'DELAYED',
     deliveryDelayAt: '2026-02-01T15:00:00.000Z',
     problemReason: null,
-    sourceCreatedAt: '2026-02-16T12:22:00.000Z',
-    sourceUpdatedAt: '2026-02-16T14:01:00.000Z',
     createdAt: '2026-02-16T12:22:00.000Z',
     updatedAt: '2026-02-16T14:01:00.000Z',
     tags: ['late', 'hold'],
@@ -187,8 +177,6 @@ const salesFixture = [
     status: 'RECEIVED',
     deliveryDelayAt: null,
     problemReason: null,
-    sourceCreatedAt: '2026-02-17T10:50:00.000Z',
-    sourceUpdatedAt: '2026-02-17T10:50:00.000Z',
     createdAt: '2026-02-17T10:50:00.000Z',
     updatedAt: '2026-02-17T10:50:00.000Z',
     tags: ['bulk', 'partner'],
@@ -215,8 +203,6 @@ const salesFixture = [
     status: 'COMPLETED',
     deliveryDelayAt: null,
     problemReason: null,
-    sourceCreatedAt: '2026-02-18T16:30:00.000Z',
-    sourceUpdatedAt: '2026-02-18T16:30:00.000Z',
     createdAt: '2026-02-18T16:30:00.000Z',
     updatedAt: '2026-02-18T18:01:00.000Z',
     tags: ['online-sale'],
@@ -243,8 +229,6 @@ const salesFixture = [
     status: 'PROBLEM',
     deliveryDelayAt: null,
     problemReason: 'Seat assignment conflict with existing order',
-    sourceCreatedAt: '2026-02-19T13:33:00.000Z',
-    sourceUpdatedAt: '2026-02-20T09:12:00.000Z',
     createdAt: '2026-02-19T13:33:00.000Z',
     updatedAt: '2026-02-20T09:13:00.000Z',
     tags: ['vip', 'problem'],
@@ -271,8 +255,6 @@ const salesFixture = [
     status: 'DELAYED',
     deliveryDelayAt: '2026-01-30T10:00:00.000Z',
     problemReason: null,
-    sourceCreatedAt: '2026-02-20T14:45:00.000Z',
-    sourceUpdatedAt: '2026-02-20T14:45:00.000Z',
     createdAt: '2026-02-20T14:45:00.000Z',
     updatedAt: '2026-02-20T14:45:00.000Z',
     tags: ['late'],
@@ -299,8 +281,6 @@ const salesFixture = [
     status: 'RECEIVED',
     deliveryDelayAt: null,
     problemReason: null,
-    sourceCreatedAt: '2026-02-21T09:12:00.000Z',
-    sourceUpdatedAt: '2026-02-21T09:12:00.000Z',
     createdAt: '2026-02-21T09:12:00.000Z',
     updatedAt: '2026-02-21T09:12:00.000Z',
     tags: ['clear', 'partner'],
@@ -337,8 +317,6 @@ CREATE TABLE IF NOT EXISTS sales (
   filled_by_user_id UUID,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  source_created_at TIMESTAMPTZ,
-  source_updated_at TIMESTAMPTZ,
   source_sync_state TEXT
 );
 
@@ -420,9 +398,9 @@ async function seed() {
         INSERT INTO sales (
           external_sale_id, listing_id, event_id, quantity, price, currency, buyer_email,
           status, delivery_delay_at, problem_reason, filled_by_user_id, source_payload,
-          source_created_at, source_updated_at, created_at, updated_at, source_sync_state
+          created_at, updated_at, source_sync_state
         )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
         ON CONFLICT (external_sale_id)
         DO UPDATE SET
           listing_id = EXCLUDED.listing_id,
@@ -436,8 +414,6 @@ async function seed() {
           problem_reason = EXCLUDED.problem_reason,
           filled_by_user_id = EXCLUDED.filled_by_user_id,
           source_payload = EXCLUDED.source_payload,
-          source_created_at = EXCLUDED.source_created_at,
-          source_updated_at = EXCLUDED.source_updated_at,
           updated_at = EXCLUDED.updated_at
         RETURNING id
         `,
@@ -454,8 +430,6 @@ async function seed() {
           item.problemReason,
           seededBy,
           JSON.stringify({ raw: item.sourcePayload }),
-          item.sourceCreatedAt,
-          item.sourceUpdatedAt,
           item.createdAt,
           item.updatedAt,
           item.status === 'DELAYED' ? 'seed:delayed' : item.status === 'PROBLEM' ? 'seed:problem' : null,

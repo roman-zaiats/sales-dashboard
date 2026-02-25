@@ -56,8 +56,6 @@ type Sale {
   comments: [SaleComment!]!
   createdAt: DateTime!
   updatedAt: DateTime!
-  sourceCreatedAt: DateTime
-  sourceUpdatedAt: DateTime
 }
 
 type SaleTag {

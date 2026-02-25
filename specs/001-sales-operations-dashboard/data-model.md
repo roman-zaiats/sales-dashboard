@@ -17,13 +17,10 @@
 - `filled_by_user_id` (uuid, nullable)
 - `created_at` (timestamp)
 - `updated_at` (timestamp)
-- `source_created_at` (timestamp, optional)
-- `source_updated_at` (timestamp, optional)
 - `source_sync_state` (uuid/timestamp pointer to ingestion progress)
 
 ### Derived Rule
 
-- Source fields are immutable from UI.
 - `status`, `delivery_delay_at`, `problem_reason`, `filled_by_user_id` are editable.
 
 ## Entity: Tag

@@ -15,8 +15,6 @@ export const sales = pgTable('sales', {
   deliveryDelayAt: timestamp('delivery_delay_at', { withTimezone: true }),
   problemReason: text('problem_reason'),
   filledByUserId: uuid('filled_by_user_id').references(() => users.id, { onDelete: 'set null' }),
-  sourceCreatedAt: timestamp('source_created_at', { withTimezone: true }),
-  sourceUpdatedAt: timestamp('source_updated_at', { withTimezone: true }),
   sourceSyncState: text('source_sync_state'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .default(sql`NOW()`)

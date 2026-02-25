@@ -23,6 +23,12 @@ Backend required values include the operational database credentials used by Nes
 2. Review backend schema and env loading before first run:
    - `back/app.env.ts`
    - `front/src/graphql` codegen config
+3. Confirm runtime mode is unified:
+   - Backend runs only from `npm run start` (no leader/worker split).
+   - `back/package.json` has a single runtime path used by local and production runs.
+4. If connecting to an existing production PostgreSQL, apply migration history safely:
+   - `cd back && npm run db:migrate` (for a fresh DB with Drizzle history table).
+   - For pre-existing schemas, coordinate one-off baseline migration handling with your DB owner before migration.
 
 ## Build and verification flow (per Constitution phase gate)
 
