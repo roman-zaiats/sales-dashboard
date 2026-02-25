@@ -56,7 +56,13 @@ export class SalesService {
 
   async updateSaleStatus(id: string, status: SaleStatus, expectedUpdatedAt?: string | null): Promise<Sale> {
     return await this.mutateWithExpectedConcurrency(id, expectedUpdatedAt, async () => {
-      return await this.salesRepository.updateStatus(id, status, expectedUpdatedAt);
+      const updated = await this.salesRepository.updateStatus(id, status, expectedUpdatedAt);
+
+      if (!updated) {
+        throw new Error(SALE_STALE_UPDATE_WARNING);
+      }
+
+      return updated;
     });
   }
 
