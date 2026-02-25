@@ -1,9 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { Logger, Injectable } from '@nestjs/common';
 
-import { SaleStatus, type SaleSourceRecord } from './sales.types';
+import { Injectable, Logger } from '@nestjs/common';
+
 import { SalesRepository } from './sales.repository';
+import { type ListingFee, SaleSourceRecord, SaleStatus } from './sales.types';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -31,10 +32,7 @@ export class SalesImportService {
 
   constructor(private readonly salesRepository: SalesRepository) {}
 
-  async importFromCompassBackup(
-    filePath: string,
-    sourceSyncState: string,
-  ): Promise<CompassImportSummary> {
+  async importFromCompassBackup(filePath: string, sourceSyncState: string): Promise<CompassImportSummary> {
     const readResult = this.readBackupFile(filePath);
     const mappedRows: SaleSourceRecord[] = [];
     let skipped = 0;
@@ -56,12 +54,11 @@ export class SalesImportService {
       });
     }
 
-    const result = await this.salesRepository.upsertSalesFromSource(
-      mappedRows,
-      sourceSyncState,
-    );
+    const result = await this.salesRepository.upsertSalesFromSource(mappedRows, sourceSyncState);
 
-    this.logger.log(`Import complete for ${readResult.path}: ${result.insertedCount} inserted, ${result.updatedCount} updated`);
+    this.logger.log(
+      `Import complete for ${readResult.path}: ${result.insertedCount} inserted, ${result.updatedCount} updated`,
+    );
 
     return {
       filePath: readResult.path,
@@ -77,6 +74,7 @@ export class SalesImportService {
 
   private readBackupFile(filePath: string): FileReadResult {
     const resolvedPath = resolve(filePath);
+
     if (!existsSync(resolvedPath)) {
       throw new Error(`Backup file not found: ${resolvedPath}`);
     }
@@ -84,6 +82,7 @@ export class SalesImportService {
     const raw = readFileSync(resolvedPath, 'utf8');
     const parsed = this.parseJsonPayload(raw, resolvedPath);
     const records = this.normalizePayloadToRecords(parsed, resolvedPath);
+
     return {
       path: resolvedPath,
       records,
@@ -109,18 +108,11 @@ export class SalesImportService {
       return payload;
     }
 
-    const possibleArrays = [
-      'documents',
-      'rows',
-      'data',
-      'results',
-      'tickets',
-      'sales',
-      'items',
-    ] as const;
+    const possibleArrays = ['documents', 'rows', 'data', 'results', 'tickets', 'sales', 'items'] as const;
 
     for (const key of possibleArrays) {
       const value = payload[key];
+
       if (Array.isArray(value)) {
         return value as UnknownRecord[];
       }
@@ -142,47 +134,77 @@ export class SalesImportService {
   }
 
   private mapMongoRecord(record: UnknownRecord): Omit<SaleSourceRecord, 'sourcePayload'> | null {
-    const externalSaleId = this.extractExternalSaleId(record);
+    const externalSaleId = this.extractExternalSaleId(record._id);
+
     if (!externalSaleId) {
       return null;
     }
 
-    const createdAt = this.parseDate(record.creationDate) ?? this.parseDate(record.statusChangeDate) ?? new Date();
-    const updatedAt = this.parseDate(record.statusChangeDate) ?? this.parseDate(record.creationDate) ?? new Date();
+    const createdAt = this.parseDate(record.creationDate)?.toISOString() ?? new Date().toISOString();
+    const updatedAt = this.parseDate(record.statusChangeDate)?.toISOString() ?? createdAt;
+    const listingSourceId = externalSaleId;
 
     return {
       externalSaleId,
-      listingId: this.normalizeText(record.ticketGroupId) ?? this.normalizeText(record.listingId) ?? null,
-      eventId: this.normalizeText(record.eventId),
-      quantity: this.normalizeInteger(record.quantity),
-      price: this.parseDecimal(record.price) ?? this.parseDecimal(record.lowerPrice),
-      currency: this.normalizeText(record.currency),
       buyerEmail: this.normalizeText(record.buyerEmail),
-      createdAt: createdAt.toISOString(),
-      updatedAt: updatedAt.toISOString(),
+      createdAt,
+      updatedAt,
       sourceStatus: this.normalizeStatus(record.status),
-      sourcePayload: null,
+      listing: {
+        sourceListingId: listingSourceId,
+        listingId: this.normalizeText(record.ticketGroupId),
+        adviceIndex: this.normalizeInteger(record.adviceIndex),
+        area: this.normalizeText(record.area),
+        assignedPos: this.normalizeText(record.assignedPos),
+        creationDate: this.parseDate(record.creationDate)?.toISOString(),
+        creationType: this.normalizeText(record.creationType),
+        eventId: this.normalizeText(record.eventId),
+        eventName: this.normalizeText(record.eventName),
+        exchange: this.normalizeText(record.exchange),
+        exchangesForSale: this.normalizeStringArray(record.exchangesForSale),
+        extraFee: this.parseDecimal(record.extraFee),
+        faceValue: this.parseDecimal(record.faceValue),
+        lastPosModificationDate: this.parseDate(record.lastPosModificationDate)?.toISOString(),
+        lowerPrice: this.parseDecimal(record.lowerPrice),
+        offerId: this.normalizeText(record.offerId),
+        originalSection: this.normalizeText(record.originalSection),
+        placesIds: this.normalizeStringArray(record.placesIds),
+        price: this.parseDecimal(record.price),
+        priceMultiplier: this.parseDecimal(record.priceMultiplier),
+        pricingRuleMultiplierChangeTime: this.parseDate(record.pricingRuleMultiplierChangeTime)?.toISOString(),
+        quality: this.parseDecimal(record.quality),
+        quantity: this.normalizeInteger(record.quantity),
+        row: this.normalizeText(record.row),
+        rulePriceMultiplierIndex: this.normalizeInteger(record.rulePriceMultiplierIndex),
+        section: this.normalizeText(record.section),
+        splitRule: this.normalizeText(record.splitRule),
+        startRow: this.normalizeText(record.startRow),
+        status: this.normalizeText(record.status),
+        statusChangeDate: this.parseDate(record.statusChangeDate)?.toISOString(),
+        subPlatform: this.normalizeText(record.subPlatform),
+        tags: this.normalizeStringArray(record.tags),
+        ticketTypeName: this.normalizeText(record.ticketTypeName),
+        venueName: this.normalizeText(record.venueName),
+        fees: this.normalizeFees(record.fees),
+        sourcePayload: {
+          sourceId: listingSourceId,
+          raw: record,
+        },
+      },
     };
   }
 
-  private extractExternalSaleId(record: UnknownRecord): string | null {
-    return this.normalizeText(this.unwrapId(record._id) ?? record.ticketGroupId ?? record.listingId ?? record.external_sale_id ?? record.externalSaleId);
-  }
-
-  private unwrapId(value: unknown): string | null {
-    if (!value) {
-      return null;
-    }
-
+  private extractExternalSaleId(value: unknown): string | null {
     if (typeof value === 'string') {
-      const trimmed = value.trim();
+      const normalized = value.trim();
 
-      return trimmed.length > 0 ? trimmed : null;
+      return normalized.length > 0 ? normalized : null;
     }
 
-    if (typeof value === 'object' && value !== null && '$oid' in value && typeof value.$oid === 'string') {
-      const text = value.$oid.trim();
-      return text.length > 0 ? text : null;
+    if (value && typeof value === 'object' && '$oid' in value && typeof value.$oid === 'string') {
+      const normalized = value.$oid.trim();
+
+      return normalized.length > 0 ? normalized : null;
     }
 
     return null;
@@ -195,13 +217,23 @@ export class SalesImportService {
 
     if (typeof value === 'string' || value instanceof Date) {
       const parsed = new Date(value);
+
       return Number.isNaN(parsed.getTime()) ? null : parsed;
     }
 
     if (value && typeof value === 'object' && '$date' in value) {
       const dateValue = value.$date;
+
       if (typeof dateValue === 'string' || typeof dateValue === 'number') {
         const parsed = new Date(dateValue);
+
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      if (dateValue && typeof dateValue === 'object' && 'toString' in dateValue) {
+        const textual = String((dateValue as { toString: () => string }).toString());
+        const parsed = new Date(textual);
+
         return Number.isNaN(parsed.getTime()) ? null : parsed;
       }
     }
@@ -214,30 +246,33 @@ export class SalesImportService {
       return value;
     }
 
-    if (value && typeof value === 'object' && typeof value.$numberDecimal === 'string') {
-      const parsed = Number(value.$numberDecimal);
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+
       return Number.isFinite(parsed) ? parsed : null;
     }
 
-    if (typeof value === 'string') {
-      const parsed = Number(value);
-      return Number.isFinite(parsed) ? parsed : null;
+    if (value && typeof value === 'object') {
+      const decimalLike = value as { $numberDecimal?: unknown };
+
+      if (typeof decimalLike.$numberDecimal === 'string') {
+        const parsed = Number(decimalLike.$numberDecimal);
+
+        return Number.isFinite(parsed) ? parsed : null;
+      }
     }
 
     return null;
   }
 
   private normalizeInteger(value: unknown): number | null {
-    if (typeof value === 'number' && Number.isInteger(value)) {
-      return value;
-    }
-
     if (typeof value === 'number' && Number.isFinite(value)) {
       return Math.trunc(value);
     }
 
     if (typeof value === 'string') {
       const parsed = Number.parseInt(value, 10);
+
       return Number.isFinite(parsed) ? parsed : null;
     }
 
@@ -247,6 +282,7 @@ export class SalesImportService {
   private normalizeText(value: unknown): string | null {
     if (typeof value === 'string') {
       const text = value.trim();
+
       return text.length > 0 ? text : null;
     }
 
@@ -257,25 +293,77 @@ export class SalesImportService {
     return null;
   }
 
+  private normalizeStringArray(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .map(item => {
+        if (typeof item === 'string') {
+          const text = item.trim();
+
+          return text.length > 0 ? text : null;
+        }
+
+        if (typeof item === 'number' && Number.isFinite(item)) {
+          return String(item);
+        }
+
+        if (item && typeof item === 'object' && '$oid' in item && typeof item.$oid === 'string') {
+          const text = item.$oid.trim();
+
+          return text.length > 0 ? text : null;
+        }
+
+        return null;
+      })
+      .filter((item): item is string => item !== null);
+  }
+
   private normalizeStatus(value: unknown): SaleStatus | null {
     if (typeof value !== 'string') {
       return null;
     }
 
     const normalized = value.trim().toUpperCase();
+
     if (normalized === SaleStatus.RECEIVED || normalized === 'INITIATED') {
       return SaleStatus.RECEIVED;
     }
-    if (normalized === 'SOLD' || normalized === SaleStatus.COMPLETED) {
+
+    if (normalized === SaleStatus.COMPLETED || normalized === 'SOLD') {
       return SaleStatus.COMPLETED;
     }
+
     if (normalized === SaleStatus.DELAYED) {
       return SaleStatus.DELAYED;
     }
+
     if (normalized === SaleStatus.PROBLEM) {
       return SaleStatus.PROBLEM;
     }
 
     return null;
+  }
+
+  private normalizeFees(value: unknown): ListingFee[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .filter((item): item is UnknownRecord => item != null && typeof item === 'object')
+      .map(item => ({
+        type: typeof item.type === 'string' ? item.type : undefined,
+        description: typeof item.description === 'string' ? item.description : undefined,
+        amount: this.normalizeFeeAmount(item.amount),
+      }));
+  }
+
+  private normalizeFeeAmount(value: unknown): string | number | null {
+    const parsed = this.parseDecimal(value);
+
+    return parsed == null ? null : parsed;
   }
 }

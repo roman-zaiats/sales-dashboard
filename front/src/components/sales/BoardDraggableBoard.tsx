@@ -19,6 +19,7 @@ import { SALE_STALE_EDIT_WARNING } from '@/store/sales/sale-detail.mutations';
 import { SALE_BOARD_COLUMNS, SALE_BOARD_LABELS } from '@/app/dashboard/sales/status';
 import { isValidStatusTransition } from '@/lib/sales/status';
 import { useSalesBoardStore } from '@/store/sales/sales-board.store';
+import { saleDisplayLabel } from '@/lib/sales/sales-utils';
 
 type BoardDraggableBoardProps = {
   sales: Sale[];
@@ -61,7 +62,7 @@ const BoardCard = ({ sale }: SaleCardProps) => {
   return (
     <li className="sales-board-card" ref={setNodeRef} style={style} {...listeners} {...attributes}>
       <strong className="text-sm text-slate-900">{sale.externalSaleId}</strong>
-      <p className="mt-1 text-sm text-slate-700">{sale.listingId || sale.eventId || '-'}</p>
+      <p className="mt-1 text-sm text-slate-700">{saleDisplayLabel(sale)}</p>
       <p className="mt-1 text-xs text-slate-500">Delay: {formatDelay(sale.deliveryDelayAt)}</p>
       <p className="mt-1 text-xs text-slate-500">Problem: {sale.problemReason || '—'}</p>
       <Link

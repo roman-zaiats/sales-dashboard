@@ -5,13 +5,13 @@ import type { Sale } from '@/store/sales/types';
 export const isSaleDelayed = (sale: Pick<Sale, 'deliveryDelayAt'>): boolean =>
   Boolean(sale.deliveryDelayAt && isPast(parseISO(sale.deliveryDelayAt)));
 
-export const saleDisplayLabel = (sale: Pick<Sale, 'externalSaleId' | 'listingId' | 'eventId'>): string => {
-  if (sale.listingId) {
-    return sale.listingId;
+export const saleDisplayLabel = (sale: Pick<Sale, 'externalSaleId' | 'listing'>): string => {
+  if (sale.listing?.listingId) {
+    return sale.listing.listingId;
   }
 
-  if (sale.eventId) {
-    return sale.eventId;
+  if (sale.listing?.eventId) {
+    return sale.listing.eventId;
   }
 
   return sale.externalSaleId;

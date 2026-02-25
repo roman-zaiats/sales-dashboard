@@ -98,7 +98,7 @@ export const DelayedSalesTable = ({ sales }: DelayedSalesTableProps) => {
                   <DelayedSalesBadge sale={sale} />
                 </td>
                 <td className="sales-table-cell">{sale.problemReason || '—'}</td>
-                <td className="sales-table-cell">{sale.tags.map(tag => tag.name).join(', ') || '—'}</td>
+                <td className="sales-table-cell">{sale.dashboardTags.map(tag => tag.name).join(', ') || '—'}</td>
                 <td className="sales-table-cell">{sale.filledBy?.fullName || '—'}</td>
                 <td className="sales-table-cell">
                   <Link className="text-sky-700 hover:text-sky-900" to={`/dashboard/sale/${sale.id}`}>

@@ -4,11 +4,6 @@ import { integer, jsonb, numeric, pgTable, primaryKey, text, timestamp, uuid } f
 export const sales = pgTable('sales', {
   id: uuid('id').primaryKey().defaultRandom(),
   externalSaleId: text('external_sale_id').notNull().unique(),
-  listingId: text('listing_id'),
-  eventId: text('event_id'),
-  quantity: integer('quantity'),
-  price: numeric('price', { precision: 16, scale: 4 }),
-  currency: text('currency'),
   buyerEmail: text('buyer_email'),
   sourcePayload: jsonb('source_payload').$type<Record<string, unknown> | null>(),
   status: text('status').notNull(),
@@ -24,7 +19,72 @@ export const sales = pgTable('sales', {
     .notNull(),
 });
 
+export const listings = pgTable('listings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  saleId: uuid('sale_id')
+    .notNull()
+    .unique()
+    .references(() => sales.id, { onDelete: 'cascade' }),
+  sourceListingId: text('source_listing_id').notNull().unique(),
+  listingId: text('listing_id'),
+  adviceIndex: integer('advice_index'),
+  area: text('area'),
+  assignedPos: text('assigned_pos'),
+  creationDate: timestamp('creation_date', { withTimezone: true }),
+  creationType: text('creation_type'),
+  eventId: text('event_id'),
+  eventName: text('event_name'),
+  exchange: text('exchange'),
+  exchangesForSale: text('exchanges_for_sale').array(),
+  extraFee: numeric('extra_fee'),
+  faceValue: numeric('face_value'),
+  lastPosModificationDate: timestamp('last_pos_modification_date', { withTimezone: true }),
+  lowerPrice: numeric('lower_price'),
+  offerId: text('offer_id'),
+  originalSection: text('original_section'),
+  placesIds: text('places_ids').array(),
+  price: numeric('price', { precision: 16, scale: 4 }),
+  priceMultiplier: numeric('price_multiplier', { precision: 16, scale: 4 }),
+  pricingRuleMultiplierChangeTime: timestamp('pricing_rule_multiplier_change_time', { withTimezone: true }),
+  quality: numeric('quality'),
+  quantity: integer('quantity'),
+  row: text('row'),
+  rulePriceMultiplierIndex: integer('rule_price_multiplier_index'),
+  section: text('section'),
+  splitRule: text('split_rule'),
+  startRow: text('start_row'),
+  status: text('status'),
+  statusChangeDate: timestamp('status_change_date', { withTimezone: true }),
+  subPlatform: text('sub_platform'),
+  tags: text('tags').array(),
+  ticketTypeName: text('ticket_type_name'),
+  venueName: text('venue_name'),
+  fees: jsonb('fees').$type<Array<{
+    type?: string | null;
+    description?: string | null;
+    amount?: string | number | null;
+  }> | null>(),
+  sourcePayload: jsonb('source_payload').$type<Record<string, unknown> | null>(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .default(sql`NOW()`)
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .default(sql`NOW()`)
+    .notNull(),
+});
+
+export const listingRelations = relations(listings, ({ one }) => ({
+  sale: one(sales, {
+    fields: [listings.saleId],
+    references: [sales.id],
+  }),
+}));
+
 export const saleRelations = relations(sales, ({ many, one }) => ({
+  listing: one(listings, {
+    fields: [sales.id],
+    references: [listings.saleId],
+  }),
   saleTags: many(saleTags),
   comments: many(saleComments),
   filledBy: one(users, {

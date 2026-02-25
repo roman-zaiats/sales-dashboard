@@ -41,26 +41,70 @@ type User {
 type Sale {
   id: ID!
   externalSaleId: String!
-  listingId: String
-  eventId: String
-  quantity: Int
-  price: Float
-  currency: String
+  listing: Listing
   buyerEmail: String
   sourcePayload: JSON
   status: SaleStatus!
   deliveryDelayAt: DateTime
   problemReason: String
   filledBy: User
-  tags: [SaleTag!]!
+  dashboardTags: [DashboardTag!]!
   comments: [SaleComment!]!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
 
-type SaleTag {
+type DashboardTag {
   id: ID!
   name: String!
+}
+
+type ListingFee {
+  type: String
+  description: String
+  amount: Float
+}
+
+type Listing {
+  id: ID!
+  sourceListingId: String!
+  listingId: String
+  adviceIndex: Int
+  area: String
+  assignedPos: String
+  creationDate: DateTime
+  creationType: String
+  eventId: String
+  eventName: String
+  exchange: String
+  exchangesForSale: [String!]!
+  extraFee: Float
+  faceValue: Float
+  lastPosModificationDate: DateTime
+  lowerPrice: Float
+  offerId: String
+  originalSection: String
+  placesIds: [String!]!
+  price: Float
+  priceMultiplier: Float
+  pricingRuleMultiplierChangeTime: DateTime
+  quality: Float
+  quantity: Int
+  row: String
+  rulePriceMultiplierIndex: Int
+  section: String
+  splitRule: String
+  startRow: String
+  status: String
+  statusChangeDate: DateTime
+  subPlatform: String
+  tags: [String!]!
+  ticketTypeName: String
+  venueName: String
+  fees: [ListingFee!]
+  sourcePayload: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 type SaleComment {

@@ -19,6 +19,62 @@ export type Scalars = {
   JSON: { input: any; output: any; }
 };
 
+export type DashboardTag = {
+  __typename?: 'DashboardTag';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
+export type Listing = {
+  __typename?: 'Listing';
+  adviceIndex?: Maybe<Scalars['Int']['output']>;
+  area?: Maybe<Scalars['String']['output']>;
+  assignedPos?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  creationDate?: Maybe<Scalars['DateTime']['output']>;
+  creationType?: Maybe<Scalars['String']['output']>;
+  eventId?: Maybe<Scalars['String']['output']>;
+  eventName?: Maybe<Scalars['String']['output']>;
+  exchange?: Maybe<Scalars['String']['output']>;
+  exchangesForSale: Array<Scalars['String']['output']>;
+  extraFee?: Maybe<Scalars['Float']['output']>;
+  faceValue?: Maybe<Scalars['Float']['output']>;
+  fees?: Maybe<Array<ListingFee>>;
+  id: Scalars['ID']['output'];
+  lastPosModificationDate?: Maybe<Scalars['DateTime']['output']>;
+  listingId?: Maybe<Scalars['String']['output']>;
+  lowerPrice?: Maybe<Scalars['Float']['output']>;
+  offerId?: Maybe<Scalars['String']['output']>;
+  originalSection?: Maybe<Scalars['String']['output']>;
+  placesIds: Array<Scalars['String']['output']>;
+  price?: Maybe<Scalars['Float']['output']>;
+  priceMultiplier?: Maybe<Scalars['Float']['output']>;
+  pricingRuleMultiplierChangeTime?: Maybe<Scalars['DateTime']['output']>;
+  quality?: Maybe<Scalars['Float']['output']>;
+  quantity?: Maybe<Scalars['Int']['output']>;
+  row?: Maybe<Scalars['String']['output']>;
+  rulePriceMultiplierIndex?: Maybe<Scalars['Int']['output']>;
+  section?: Maybe<Scalars['String']['output']>;
+  sourceListingId: Scalars['String']['output'];
+  sourcePayload?: Maybe<Scalars['JSON']['output']>;
+  splitRule?: Maybe<Scalars['String']['output']>;
+  startRow?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  statusChangeDate?: Maybe<Scalars['DateTime']['output']>;
+  subPlatform?: Maybe<Scalars['String']['output']>;
+  tags: Array<Scalars['String']['output']>;
+  ticketTypeName?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['DateTime']['output'];
+  venueName?: Maybe<Scalars['String']['output']>;
+};
+
+export type ListingFee = {
+  __typename?: 'ListingFee';
+  amount?: Maybe<Scalars['Float']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  type?: Maybe<Scalars['String']['output']>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   addSaleComment: SaleComment;
@@ -112,19 +168,15 @@ export type Sale = {
   buyerEmail?: Maybe<Scalars['String']['output']>;
   comments: Array<SaleComment>;
   createdAt: Scalars['DateTime']['output'];
-  currency?: Maybe<Scalars['String']['output']>;
+  dashboardTags: Array<DashboardTag>;
   deliveryDelayAt?: Maybe<Scalars['DateTime']['output']>;
-  eventId?: Maybe<Scalars['String']['output']>;
   externalSaleId: Scalars['String']['output'];
   filledBy?: Maybe<User>;
   id: Scalars['ID']['output'];
-  listingId?: Maybe<Scalars['String']['output']>;
-  price?: Maybe<Scalars['Float']['output']>;
+  listing?: Maybe<Listing>;
   problemReason?: Maybe<Scalars['String']['output']>;
-  quantity?: Maybe<Scalars['Int']['output']>;
   sourcePayload?: Maybe<Scalars['JSON']['output']>;
   status: SaleStatus;
-  tags: Array<SaleTag>;
   updatedAt: Scalars['DateTime']['output'];
 };
 
@@ -167,12 +219,6 @@ export type SaleStatus =
   | 'PROBLEM'
   | 'RECEIVED';
 
-export type SaleTag = {
-  __typename?: 'SaleTag';
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
-};
-
 export type SortDirection =
   | 'ASC'
   | 'DESC';
@@ -186,13 +232,21 @@ export type User = {
   lastName?: Maybe<Scalars['String']['output']>;
 };
 
-export type UpdateSaleStatusMutation_updateSaleStatus_Sale_filledBy_User = { __typename?: 'User', id: string, authSub?: string | null | undefined, firstName?: string | null | undefined, lastName?: string | null | undefined, fullName: string };
+export type ListingDataFragment_Listing_fees_ListingFee = { __typename?: 'ListingFee', type?: string | null | undefined, description?: string | null | undefined, amount?: number | null | undefined };
 
-export type UpdateSaleStatusMutation_updateSaleStatus_Sale_tags_SaleTag = { __typename?: 'SaleTag', id: string, name: string };
+export type ListingDataFragment = { __typename?: 'Listing', id: string, sourceListingId: string, listingId?: string | null | undefined, adviceIndex?: number | null | undefined, area?: string | null | undefined, assignedPos?: string | null | undefined, creationDate?: any | null | undefined, creationType?: string | null | undefined, eventId?: string | null | undefined, eventName?: string | null | undefined, exchange?: string | null | undefined, exchangesForSale: Array<string>, extraFee?: number | null | undefined, faceValue?: number | null | undefined, lastPosModificationDate?: any | null | undefined, lowerPrice?: number | null | undefined, offerId?: string | null | undefined, originalSection?: string | null | undefined, placesIds: Array<string>, price?: number | null | undefined, priceMultiplier?: number | null | undefined, pricingRuleMultiplierChangeTime?: any | null | undefined, quality?: number | null | undefined, quantity?: number | null | undefined, row?: string | null | undefined, rulePriceMultiplierIndex?: number | null | undefined, section?: string | null | undefined, splitRule?: string | null | undefined, startRow?: string | null | undefined, status?: string | null | undefined, statusChangeDate?: any | null | undefined, subPlatform?: string | null | undefined, tags: Array<string>, ticketTypeName?: string | null | undefined, venueName?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, fees?: Array<ListingDataFragment_Listing_fees_ListingFee> | null | undefined };
 
-export type UpdateSaleStatusMutation_updateSaleStatus_Sale_comments_SaleComment = { __typename?: 'SaleComment', id: string, author: string, comment: string, createdAt: any };
+export type SaleDashboardDataFragment_Sale_listing_Listing = { __typename?: 'Listing', id: string, sourceListingId: string, listingId?: string | null | undefined, adviceIndex?: number | null | undefined, area?: string | null | undefined, assignedPos?: string | null | undefined, creationDate?: any | null | undefined, creationType?: string | null | undefined, eventId?: string | null | undefined, eventName?: string | null | undefined, exchange?: string | null | undefined, exchangesForSale: Array<string>, extraFee?: number | null | undefined, faceValue?: number | null | undefined, lastPosModificationDate?: any | null | undefined, lowerPrice?: number | null | undefined, offerId?: string | null | undefined, originalSection?: string | null | undefined, placesIds: Array<string>, price?: number | null | undefined, priceMultiplier?: number | null | undefined, pricingRuleMultiplierChangeTime?: any | null | undefined, quality?: number | null | undefined, quantity?: number | null | undefined, row?: string | null | undefined, rulePriceMultiplierIndex?: number | null | undefined, section?: string | null | undefined, splitRule?: string | null | undefined, startRow?: string | null | undefined, status?: string | null | undefined, statusChangeDate?: any | null | undefined, subPlatform?: string | null | undefined, tags: Array<string>, ticketTypeName?: string | null | undefined, venueName?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, fees?: Array<ListingDataFragment_Listing_fees_ListingFee> | null | undefined };
 
-export type UpdateSaleStatusMutation_updateSaleStatus_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, listingId?: string | null | undefined, eventId?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, filledBy?: UpdateSaleStatusMutation_updateSaleStatus_Sale_filledBy_User | null | undefined, tags: Array<UpdateSaleStatusMutation_updateSaleStatus_Sale_tags_SaleTag>, comments: Array<UpdateSaleStatusMutation_updateSaleStatus_Sale_comments_SaleComment> };
+export type SaleDashboardDataFragment_Sale_filledBy_User = { __typename?: 'User', id: string, fullName: string, firstName?: string | null | undefined, lastName?: string | null | undefined };
+
+export type SaleDashboardDataFragment_Sale_dashboardTags_DashboardTag = { __typename?: 'DashboardTag', id: string, name: string };
+
+export type SaleDashboardDataFragment_Sale_comments_SaleComment = { __typename?: 'SaleComment', id: string, author: string, comment: string, createdAt: any };
+
+export type SaleDashboardDataFragment = { __typename?: 'Sale', id: string, externalSaleId: string, buyerEmail?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, listing?: SaleDashboardDataFragment_Sale_listing_Listing | null | undefined, filledBy?: SaleDashboardDataFragment_Sale_filledBy_User | null | undefined, dashboardTags: Array<SaleDashboardDataFragment_Sale_dashboardTags_DashboardTag>, comments: Array<SaleDashboardDataFragment_Sale_comments_SaleComment> };
+
+export type UpdateSaleStatusMutation_updateSaleStatus_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, buyerEmail?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, listing?: SaleDashboardDataFragment_Sale_listing_Listing | null | undefined, filledBy?: SaleDashboardDataFragment_Sale_filledBy_User | null | undefined, dashboardTags: Array<SaleDashboardDataFragment_Sale_dashboardTags_DashboardTag>, comments: Array<SaleDashboardDataFragment_Sale_comments_SaleComment> };
 
 export type UpdateSaleStatusMutation_Mutation = { __typename?: 'Mutation', updateSaleStatus: UpdateSaleStatusMutation_updateSaleStatus_Sale };
 
@@ -206,13 +260,7 @@ export type UpdateSaleStatusMutationVariables = Exact<{
 
 export type UpdateSaleStatusMutation = UpdateSaleStatusMutation_Mutation;
 
-export type UpdateSaleDelayMutation_updateSaleDelay_Sale_filledBy_User = { __typename?: 'User', id: string, authSub?: string | null | undefined, firstName?: string | null | undefined, lastName?: string | null | undefined, fullName: string };
-
-export type UpdateSaleDelayMutation_updateSaleDelay_Sale_tags_SaleTag = { __typename?: 'SaleTag', id: string, name: string };
-
-export type UpdateSaleDelayMutation_updateSaleDelay_Sale_comments_SaleComment = { __typename?: 'SaleComment', id: string, author: string, comment: string, createdAt: any };
-
-export type UpdateSaleDelayMutation_updateSaleDelay_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, listingId?: string | null | undefined, eventId?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, filledBy?: UpdateSaleDelayMutation_updateSaleDelay_Sale_filledBy_User | null | undefined, tags: Array<UpdateSaleDelayMutation_updateSaleDelay_Sale_tags_SaleTag>, comments: Array<UpdateSaleDelayMutation_updateSaleDelay_Sale_comments_SaleComment> };
+export type UpdateSaleDelayMutation_updateSaleDelay_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, buyerEmail?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, listing?: SaleDashboardDataFragment_Sale_listing_Listing | null | undefined, filledBy?: SaleDashboardDataFragment_Sale_filledBy_User | null | undefined, dashboardTags: Array<SaleDashboardDataFragment_Sale_dashboardTags_DashboardTag>, comments: Array<SaleDashboardDataFragment_Sale_comments_SaleComment> };
 
 export type UpdateSaleDelayMutation_Mutation = { __typename?: 'Mutation', updateSaleDelay: UpdateSaleDelayMutation_updateSaleDelay_Sale };
 
@@ -226,13 +274,7 @@ export type UpdateSaleDelayMutationVariables = Exact<{
 
 export type UpdateSaleDelayMutation = UpdateSaleDelayMutation_Mutation;
 
-export type UpdateSaleProblemMutation_updateSaleProblem_Sale_filledBy_User = { __typename?: 'User', id: string, authSub?: string | null | undefined, firstName?: string | null | undefined, lastName?: string | null | undefined, fullName: string };
-
-export type UpdateSaleProblemMutation_updateSaleProblem_Sale_tags_SaleTag = { __typename?: 'SaleTag', id: string, name: string };
-
-export type UpdateSaleProblemMutation_updateSaleProblem_Sale_comments_SaleComment = { __typename?: 'SaleComment', id: string, author: string, comment: string, createdAt: any };
-
-export type UpdateSaleProblemMutation_updateSaleProblem_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, listingId?: string | null | undefined, eventId?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, filledBy?: UpdateSaleProblemMutation_updateSaleProblem_Sale_filledBy_User | null | undefined, tags: Array<UpdateSaleProblemMutation_updateSaleProblem_Sale_tags_SaleTag>, comments: Array<UpdateSaleProblemMutation_updateSaleProblem_Sale_comments_SaleComment> };
+export type UpdateSaleProblemMutation_updateSaleProblem_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, buyerEmail?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, listing?: SaleDashboardDataFragment_Sale_listing_Listing | null | undefined, filledBy?: SaleDashboardDataFragment_Sale_filledBy_User | null | undefined, dashboardTags: Array<SaleDashboardDataFragment_Sale_dashboardTags_DashboardTag>, comments: Array<SaleDashboardDataFragment_Sale_comments_SaleComment> };
 
 export type UpdateSaleProblemMutation_Mutation = { __typename?: 'Mutation', updateSaleProblem: UpdateSaleProblemMutation_updateSaleProblem_Sale };
 
@@ -246,13 +288,7 @@ export type UpdateSaleProblemMutationVariables = Exact<{
 
 export type UpdateSaleProblemMutation = UpdateSaleProblemMutation_Mutation;
 
-export type AddSaleTagMutation_addSaleTag_Sale_filledBy_User = { __typename?: 'User', id: string, authSub?: string | null | undefined, firstName?: string | null | undefined, lastName?: string | null | undefined, fullName: string };
-
-export type AddSaleTagMutation_addSaleTag_Sale_tags_SaleTag = { __typename?: 'SaleTag', id: string, name: string };
-
-export type AddSaleTagMutation_addSaleTag_Sale_comments_SaleComment = { __typename?: 'SaleComment', id: string, author: string, comment: string, createdAt: any };
-
-export type AddSaleTagMutation_addSaleTag_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, listingId?: string | null | undefined, eventId?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, filledBy?: AddSaleTagMutation_addSaleTag_Sale_filledBy_User | null | undefined, tags: Array<AddSaleTagMutation_addSaleTag_Sale_tags_SaleTag>, comments: Array<AddSaleTagMutation_addSaleTag_Sale_comments_SaleComment> };
+export type AddSaleTagMutation_addSaleTag_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, buyerEmail?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, listing?: SaleDashboardDataFragment_Sale_listing_Listing | null | undefined, filledBy?: SaleDashboardDataFragment_Sale_filledBy_User | null | undefined, dashboardTags: Array<SaleDashboardDataFragment_Sale_dashboardTags_DashboardTag>, comments: Array<SaleDashboardDataFragment_Sale_comments_SaleComment> };
 
 export type AddSaleTagMutation_Mutation = { __typename?: 'Mutation', addSaleTag: AddSaleTagMutation_addSaleTag_Sale };
 
@@ -265,13 +301,7 @@ export type AddSaleTagMutationVariables = Exact<{
 
 export type AddSaleTagMutation = AddSaleTagMutation_Mutation;
 
-export type RemoveSaleTagMutation_removeSaleTag_Sale_filledBy_User = { __typename?: 'User', id: string, authSub?: string | null | undefined, firstName?: string | null | undefined, lastName?: string | null | undefined, fullName: string };
-
-export type RemoveSaleTagMutation_removeSaleTag_Sale_tags_SaleTag = { __typename?: 'SaleTag', id: string, name: string };
-
-export type RemoveSaleTagMutation_removeSaleTag_Sale_comments_SaleComment = { __typename?: 'SaleComment', id: string, author: string, comment: string, createdAt: any };
-
-export type RemoveSaleTagMutation_removeSaleTag_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, listingId?: string | null | undefined, eventId?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, filledBy?: RemoveSaleTagMutation_removeSaleTag_Sale_filledBy_User | null | undefined, tags: Array<RemoveSaleTagMutation_removeSaleTag_Sale_tags_SaleTag>, comments: Array<RemoveSaleTagMutation_removeSaleTag_Sale_comments_SaleComment> };
+export type RemoveSaleTagMutation_removeSaleTag_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, buyerEmail?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, listing?: SaleDashboardDataFragment_Sale_listing_Listing | null | undefined, filledBy?: SaleDashboardDataFragment_Sale_filledBy_User | null | undefined, dashboardTags: Array<SaleDashboardDataFragment_Sale_dashboardTags_DashboardTag>, comments: Array<SaleDashboardDataFragment_Sale_comments_SaleComment> };
 
 export type RemoveSaleTagMutation_Mutation = { __typename?: 'Mutation', removeSaleTag: RemoveSaleTagMutation_removeSaleTag_Sale };
 
@@ -297,13 +327,7 @@ export type AddSaleCommentMutationVariables = Exact<{
 
 export type AddSaleCommentMutation = AddSaleCommentMutation_Mutation;
 
-export type SetSaleFilledByMutation_setSaleFilledBy_Sale_filledBy_User = { __typename?: 'User', id: string, authSub?: string | null | undefined, firstName?: string | null | undefined, lastName?: string | null | undefined, fullName: string };
-
-export type SetSaleFilledByMutation_setSaleFilledBy_Sale_tags_SaleTag = { __typename?: 'SaleTag', id: string, name: string };
-
-export type SetSaleFilledByMutation_setSaleFilledBy_Sale_comments_SaleComment = { __typename?: 'SaleComment', id: string, author: string, comment: string, createdAt: any };
-
-export type SetSaleFilledByMutation_setSaleFilledBy_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, listingId?: string | null | undefined, eventId?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, filledBy?: SetSaleFilledByMutation_setSaleFilledBy_Sale_filledBy_User | null | undefined, tags: Array<SetSaleFilledByMutation_setSaleFilledBy_Sale_tags_SaleTag>, comments: Array<SetSaleFilledByMutation_setSaleFilledBy_Sale_comments_SaleComment> };
+export type SetSaleFilledByMutation_setSaleFilledBy_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, buyerEmail?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, listing?: SaleDashboardDataFragment_Sale_listing_Listing | null | undefined, filledBy?: SaleDashboardDataFragment_Sale_filledBy_User | null | undefined, dashboardTags: Array<SaleDashboardDataFragment_Sale_dashboardTags_DashboardTag>, comments: Array<SaleDashboardDataFragment_Sale_comments_SaleComment> };
 
 export type SetSaleFilledByMutation_Mutation = { __typename?: 'Mutation', setSaleFilledBy: SetSaleFilledByMutation_setSaleFilledBy_Sale };
 
@@ -316,13 +340,7 @@ export type SetSaleFilledByMutationVariables = Exact<{
 
 export type SetSaleFilledByMutation = SetSaleFilledByMutation_Mutation;
 
-export type SalesListQuery_salesList_SaleListPayload_items_Sale_tags_SaleTag = { __typename?: 'SaleTag', id: string, name: string };
-
-export type SalesListQuery_salesList_SaleListPayload_items_Sale_comments_SaleComment = { __typename?: 'SaleComment', id: string, author: string, comment: string, createdAt: any };
-
-export type SalesListQuery_salesList_SaleListPayload_items_Sale_filledBy_User = { __typename?: 'User', id: string, fullName: string, firstName?: string | null | undefined, lastName?: string | null | undefined };
-
-export type SalesListQuery_salesList_SaleListPayload_items_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, listingId?: string | null | undefined, eventId?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, tags: Array<SalesListQuery_salesList_SaleListPayload_items_Sale_tags_SaleTag>, comments: Array<SalesListQuery_salesList_SaleListPayload_items_Sale_comments_SaleComment>, filledBy?: SalesListQuery_salesList_SaleListPayload_items_Sale_filledBy_User | null | undefined };
+export type SalesListQuery_salesList_SaleListPayload_items_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, buyerEmail?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, listing?: SaleDashboardDataFragment_Sale_listing_Listing | null | undefined, filledBy?: SaleDashboardDataFragment_Sale_filledBy_User | null | undefined, dashboardTags: Array<SaleDashboardDataFragment_Sale_dashboardTags_DashboardTag>, comments: Array<SaleDashboardDataFragment_Sale_comments_SaleComment> };
 
 export type SalesListQuery_salesList_SaleListPayload = { __typename?: 'SaleListPayload', totalCount: number, items: Array<SalesListQuery_salesList_SaleListPayload_items_Sale> };
 
@@ -340,11 +358,7 @@ export type SalesListQuery = SalesListQuery_Query;
 
 export type SaleByIdQuery_saleById_Sale_filledBy_User = { __typename?: 'User', id: string, authSub?: string | null | undefined, firstName?: string | null | undefined, lastName?: string | null | undefined, fullName: string };
 
-export type SaleByIdQuery_saleById_Sale_tags_SaleTag = { __typename?: 'SaleTag', id: string, name: string };
-
-export type SaleByIdQuery_saleById_Sale_comments_SaleComment = { __typename?: 'SaleComment', id: string, author: string, comment: string, createdAt: any };
-
-export type SaleByIdQuery_saleById_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, listingId?: string | null | undefined, eventId?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, filledBy?: SaleByIdQuery_saleById_Sale_filledBy_User | null | undefined, tags: Array<SaleByIdQuery_saleById_Sale_tags_SaleTag>, comments: Array<SaleByIdQuery_saleById_Sale_comments_SaleComment> };
+export type SaleByIdQuery_saleById_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, buyerEmail?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, filledBy?: SaleByIdQuery_saleById_Sale_filledBy_User | null | undefined, listing?: SaleDashboardDataFragment_Sale_listing_Listing | null | undefined, dashboardTags: Array<SaleDashboardDataFragment_Sale_dashboardTags_DashboardTag>, comments: Array<SaleDashboardDataFragment_Sale_comments_SaleComment> };
 
 export type SaleByIdQuery_Query = { __typename?: 'Query', saleById?: SaleByIdQuery_saleById_Sale | null | undefined };
 
@@ -356,13 +370,7 @@ export type SaleByIdQueryVariables = Exact<{
 
 export type SaleByIdQuery = SaleByIdQuery_Query;
 
-export type DelayedSalesQuery_delayedSales_SaleListPayload_items_Sale_tags_SaleTag = { __typename?: 'SaleTag', id: string, name: string };
-
-export type DelayedSalesQuery_delayedSales_SaleListPayload_items_Sale_comments_SaleComment = { __typename?: 'SaleComment', id: string, author: string, comment: string, createdAt: any };
-
-export type DelayedSalesQuery_delayedSales_SaleListPayload_items_Sale_filledBy_User = { __typename?: 'User', id: string, fullName: string, firstName?: string | null | undefined, lastName?: string | null | undefined };
-
-export type DelayedSalesQuery_delayedSales_SaleListPayload_items_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, listingId?: string | null | undefined, eventId?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, tags: Array<DelayedSalesQuery_delayedSales_SaleListPayload_items_Sale_tags_SaleTag>, comments: Array<DelayedSalesQuery_delayedSales_SaleListPayload_items_Sale_comments_SaleComment>, filledBy?: DelayedSalesQuery_delayedSales_SaleListPayload_items_Sale_filledBy_User | null | undefined };
+export type DelayedSalesQuery_delayedSales_SaleListPayload_items_Sale = { __typename?: 'Sale', id: string, externalSaleId: string, buyerEmail?: string | null | undefined, status: SaleStatus, deliveryDelayAt?: any | null | undefined, problemReason?: string | null | undefined, sourcePayload?: any | null | undefined, createdAt: any, updatedAt: any, listing?: SaleDashboardDataFragment_Sale_listing_Listing | null | undefined, filledBy?: SaleDashboardDataFragment_Sale_filledBy_User | null | undefined, dashboardTags: Array<SaleDashboardDataFragment_Sale_dashboardTags_DashboardTag>, comments: Array<SaleDashboardDataFragment_Sale_comments_SaleComment> };
 
 export type DelayedSalesQuery_delayedSales_SaleListPayload = { __typename?: 'SaleListPayload', totalCount: number, items: Array<DelayedSalesQuery_delayedSales_SaleListPayload_items_Sale> };
 
@@ -388,7 +396,85 @@ export type ListUsersForAssignmentQueryVariables = Exact<{ [key: string]: never;
 
 export type ListUsersForAssignmentQuery = ListUsersForAssignmentQuery_Query;
 
-
+export const ListingDataFragmentDoc = gql`
+    fragment ListingData on Listing {
+  id
+  sourceListingId
+  listingId
+  adviceIndex
+  area
+  assignedPos
+  creationDate
+  creationType
+  eventId
+  eventName
+  exchange
+  exchangesForSale
+  extraFee
+  faceValue
+  lastPosModificationDate
+  lowerPrice
+  offerId
+  originalSection
+  placesIds
+  price
+  priceMultiplier
+  pricingRuleMultiplierChangeTime
+  quality
+  quantity
+  row
+  rulePriceMultiplierIndex
+  section
+  splitRule
+  startRow
+  status
+  statusChangeDate
+  subPlatform
+  tags
+  ticketTypeName
+  venueName
+  fees {
+    type
+    description
+    amount
+  }
+  sourcePayload
+  createdAt
+  updatedAt
+}
+    `;
+export const SaleDashboardDataFragmentDoc = gql`
+    fragment SaleDashboardData on Sale {
+  id
+  externalSaleId
+  buyerEmail
+  listing {
+    ...ListingData
+  }
+  status
+  deliveryDelayAt
+  problemReason
+  sourcePayload
+  createdAt
+  updatedAt
+  filledBy {
+    id
+    fullName
+    firstName
+    lastName
+  }
+  dashboardTags {
+    id
+    name
+  }
+  comments {
+    id
+    author
+    comment
+    createdAt
+  }
+}
+    ${ListingDataFragmentDoc}`;
 export const UpdateSaleStatusDocument = gql`
     mutation UpdateSaleStatus($id: ID!, $status: SaleStatus!, $expectedUpdatedAt: DateTime) {
   updateSaleStatus(
@@ -396,36 +482,10 @@ export const UpdateSaleStatusDocument = gql`
     status: $status
     expected_updated_at: $expectedUpdatedAt
   ) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
-    filledBy {
-      id
-      authSub
-      firstName
-      lastName
-      fullName
-    }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
+    ...SaleDashboardData
   }
 }
-    `;
+    ${SaleDashboardDataFragmentDoc}`;
 export type UpdateSaleStatusMutationFn = Apollo.MutationFunction<UpdateSaleStatusMutation, UpdateSaleStatusMutationVariables>;
 
 /**
@@ -461,36 +521,10 @@ export const UpdateSaleDelayDocument = gql`
     delivery_delay_at: $deliveryDelayAt
     expected_updated_at: $expectedUpdatedAt
   ) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
-    filledBy {
-      id
-      authSub
-      firstName
-      lastName
-      fullName
-    }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
+    ...SaleDashboardData
   }
 }
-    `;
+    ${SaleDashboardDataFragmentDoc}`;
 export type UpdateSaleDelayMutationFn = Apollo.MutationFunction<UpdateSaleDelayMutation, UpdateSaleDelayMutationVariables>;
 
 /**
@@ -526,36 +560,10 @@ export const UpdateSaleProblemDocument = gql`
     problem_reason: $problemReason
     expected_updated_at: $expectedUpdatedAt
   ) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
-    filledBy {
-      id
-      authSub
-      firstName
-      lastName
-      fullName
-    }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
+    ...SaleDashboardData
   }
 }
-    `;
+    ${SaleDashboardDataFragmentDoc}`;
 export type UpdateSaleProblemMutationFn = Apollo.MutationFunction<UpdateSaleProblemMutation, UpdateSaleProblemMutationVariables>;
 
 /**
@@ -587,36 +595,10 @@ export type UpdateSaleProblemMutationOptions = Apollo.BaseMutationOptions<Update
 export const AddSaleTagDocument = gql`
     mutation AddSaleTag($id: ID!, $tagName: String!) {
   addSaleTag(id: $id, tag_name: $tagName) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
-    filledBy {
-      id
-      authSub
-      firstName
-      lastName
-      fullName
-    }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
+    ...SaleDashboardData
   }
 }
-    `;
+    ${SaleDashboardDataFragmentDoc}`;
 export type AddSaleTagMutationFn = Apollo.MutationFunction<AddSaleTagMutation, AddSaleTagMutationVariables>;
 
 /**
@@ -647,36 +629,10 @@ export type AddSaleTagMutationOptions = Apollo.BaseMutationOptions<AddSaleTagMut
 export const RemoveSaleTagDocument = gql`
     mutation RemoveSaleTag($id: ID!, $tagName: String!) {
   removeSaleTag(id: $id, tag_name: $tagName) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
-    filledBy {
-      id
-      authSub
-      firstName
-      lastName
-      fullName
-    }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
+    ...SaleDashboardData
   }
 }
-    `;
+    ${SaleDashboardDataFragmentDoc}`;
 export type RemoveSaleTagMutationFn = Apollo.MutationFunction<RemoveSaleTagMutation, RemoveSaleTagMutationVariables>;
 
 /**
@@ -744,36 +700,10 @@ export type AddSaleCommentMutationOptions = Apollo.BaseMutationOptions<AddSaleCo
 export const SetSaleFilledByDocument = gql`
     mutation SetSaleFilledBy($id: ID!, $userId: ID!) {
   setSaleFilledBy(id: $id, user_id: $userId) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
-    filledBy {
-      id
-      authSub
-      firstName
-      lastName
-      fullName
-    }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
+    ...SaleDashboardData
   }
 }
-    `;
+    ${SaleDashboardDataFragmentDoc}`;
 export type SetSaleFilledByMutationFn = Apollo.MutationFunction<SetSaleFilledByMutation, SetSaleFilledByMutationVariables>;
 
 /**
@@ -805,37 +735,12 @@ export const SalesListDocument = gql`
     query SalesList($filter: SaleFilterInput, $sort: SaleSortInput, $pagination: PaginationInput) {
   salesList(filter: $filter, sort: $sort, pagination: $pagination) {
     items {
-      id
-      externalSaleId
-      listingId
-      eventId
-      status
-      deliveryDelayAt
-      problemReason
-      sourcePayload
-      createdAt
-      updatedAt
-      tags {
-        id
-        name
-      }
-      comments {
-        id
-        author
-        comment
-        createdAt
-      }
-      filledBy {
-        id
-        fullName
-        firstName
-        lastName
-      }
+      ...SaleDashboardData
     }
     totalCount
   }
 }
-    `;
+    ${SaleDashboardDataFragmentDoc}`;
 
 /**
  * __useSalesListQuery__
@@ -877,16 +782,7 @@ export type SalesListQueryResult = Apollo.QueryResult<SalesListQuery, SalesListQ
 export const SaleByIdDocument = gql`
     query SaleById($id: ID!) {
   saleById(id: $id) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
+    ...SaleDashboardData
     filledBy {
       id
       authSub
@@ -894,19 +790,9 @@ export const SaleByIdDocument = gql`
       lastName
       fullName
     }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
   }
 }
-    `;
+    ${SaleDashboardDataFragmentDoc}`;
 
 /**
  * __useSaleByIdQuery__
@@ -947,37 +833,12 @@ export const DelayedSalesDocument = gql`
     query DelayedSales($filter: SaleFilterInput, $sort: SaleSortInput, $pagination: PaginationInput) {
   delayedSales(filter: $filter, sort: $sort, pagination: $pagination) {
     items {
-      id
-      externalSaleId
-      listingId
-      eventId
-      status
-      deliveryDelayAt
-      problemReason
-      sourcePayload
-      createdAt
-      updatedAt
-      tags {
-        id
-        name
-      }
-      comments {
-        id
-        author
-        comment
-        createdAt
-      }
-      filledBy {
-        id
-        fullName
-        firstName
-        lastName
-      }
+      ...SaleDashboardData
     }
     totalCount
   }
 }
-    `;
+    ${SaleDashboardDataFragmentDoc}`;
 
 /**
  * __useDelayedSalesQuery__

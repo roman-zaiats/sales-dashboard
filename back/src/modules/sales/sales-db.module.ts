@@ -47,6 +47,7 @@ export class SalesDbModule implements OnModuleInit {
   private async verifyTables(): Promise<void> {
     const requiredTables = [
       'sales',
+      'listings',
       'tags',
       'sale_tags',
       'sale_comments',
@@ -60,7 +61,7 @@ export class SalesDbModule implements OnModuleInit {
       SELECT table_name
       FROM information_schema.tables
       WHERE table_schema = 'public'
-        AND table_name = ANY(ARRAY['sales','tags','sale_tags','sale_comments','users','ingestion_state','sale_ingestion_runs'])
+        AND table_name = ANY(ARRAY['sales','listings','tags','sale_tags','sale_comments','users','ingestion_state','sale_ingestion_runs'])
       `,
     );
 

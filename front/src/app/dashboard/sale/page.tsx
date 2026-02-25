@@ -10,6 +10,7 @@ import { SaleTags } from '@/components/sales/SaleTags';
 import { detectSaleUpdateStaleness, SALE_STALE_EDIT_WARNING, useSaleDetailMutations } from '@/store/sales/sale-detail.mutations';
 import { useSaleDetailStore } from '@/store/sales/sale-detail.store';
 import { type SaleStatus, useSaleByIdQuery } from '@/generated/graphql';
+import { saleDisplayLabel } from '@/lib/sales/sales-utils';
 
 const formatDate = (value?: string | null): string => {
   if (!value) {
@@ -257,7 +258,7 @@ export const SaleDetailPage = () => {
               <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900">{sale.externalSaleId}</h3>
-                  <p className="mt-1 text-sm text-slate-500">{sale.listingId || sale.eventId || '—'}</p>
+                  <p className="mt-1 text-sm text-slate-500">{saleDisplayLabel(sale)}</p>
                 </div>
                 <div className="text-sm text-slate-600">
                   <p>Created: {formatDate(sale.createdAt)}</p>

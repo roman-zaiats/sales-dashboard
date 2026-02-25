@@ -1,160 +1,107 @@
+fragment ListingData on Listing {
+  id
+  sourceListingId
+  listingId
+  adviceIndex
+  area
+  assignedPos
+  creationDate
+  creationType
+  eventId
+  eventName
+  exchange
+  exchangesForSale
+  extraFee
+  faceValue
+  lastPosModificationDate
+  lowerPrice
+  offerId
+  originalSection
+  placesIds
+  price
+  priceMultiplier
+  pricingRuleMultiplierChangeTime
+  quality
+  quantity
+  row
+  rulePriceMultiplierIndex
+  section
+  splitRule
+  startRow
+  status
+  statusChangeDate
+  subPlatform
+  tags
+  ticketTypeName
+  venueName
+  fees {
+    type
+    description
+    amount
+  }
+  sourcePayload
+  createdAt
+  updatedAt
+}
+
+fragment SaleDashboardData on Sale {
+  id
+  externalSaleId
+  buyerEmail
+  listing {
+    ...ListingData
+  }
+  status
+  deliveryDelayAt
+  problemReason
+  sourcePayload
+  createdAt
+  updatedAt
+  filledBy {
+    id
+    fullName
+    firstName
+    lastName
+  }
+  dashboardTags {
+    id
+    name
+  }
+  comments {
+    id
+    author
+    comment
+    createdAt
+  }
+}
+
 mutation UpdateSaleStatus($id: ID!, $status: SaleStatus!, $expectedUpdatedAt: DateTime) {
   updateSaleStatus(id: $id, status: $status, expected_updated_at: $expectedUpdatedAt) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
-    filledBy {
-      id
-      authSub
-      firstName
-      lastName
-      fullName
-    }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
+    ...SaleDashboardData
   }
 }
 
 mutation UpdateSaleDelay($id: ID!, $deliveryDelayAt: DateTime, $expectedUpdatedAt: DateTime) {
   updateSaleDelay(id: $id, delivery_delay_at: $deliveryDelayAt, expected_updated_at: $expectedUpdatedAt) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
-    filledBy {
-      id
-      authSub
-      firstName
-      lastName
-      fullName
-    }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
+    ...SaleDashboardData
   }
 }
 
 mutation UpdateSaleProblem($id: ID!, $problemReason: String, $expectedUpdatedAt: DateTime) {
   updateSaleProblem(id: $id, problem_reason: $problemReason, expected_updated_at: $expectedUpdatedAt) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
-    filledBy {
-      id
-      authSub
-      firstName
-      lastName
-      fullName
-    }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
+    ...SaleDashboardData
   }
 }
 
 mutation AddSaleTag($id: ID!, $tagName: String!) {
   addSaleTag(id: $id, tag_name: $tagName) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
-    filledBy {
-      id
-      authSub
-      firstName
-      lastName
-      fullName
-    }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
+    ...SaleDashboardData
   }
 }
 
 mutation RemoveSaleTag($id: ID!, $tagName: String!) {
   removeSaleTag(id: $id, tag_name: $tagName) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
-    filledBy {
-      id
-      authSub
-      firstName
-      lastName
-      fullName
-    }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
+    ...SaleDashboardData
   }
 }
 
@@ -169,32 +116,6 @@ mutation AddSaleComment($id: ID!, $comment: String!) {
 
 mutation SetSaleFilledBy($id: ID!, $userId: ID!) {
   setSaleFilledBy(id: $id, user_id: $userId) {
-    id
-    externalSaleId
-    listingId
-    eventId
-    status
-    deliveryDelayAt
-    problemReason
-    sourcePayload
-    createdAt
-    updatedAt
-    filledBy {
-      id
-      authSub
-      firstName
-      lastName
-      fullName
-    }
-    tags {
-      id
-      name
-    }
-    comments {
-      id
-      author
-      comment
-      createdAt
-    }
+    ...SaleDashboardData
   }
 }

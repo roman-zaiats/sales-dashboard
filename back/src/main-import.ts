@@ -4,8 +4,9 @@ import { loadEnvVars } from '../loadEnvVars';
 loadEnvVars();
 
 import { NestFactory } from '@nestjs/core';
-import { SalesImportService } from './modules/sales/sales-import.service';
+
 import { AppModule } from './app.module';
+import { SalesImportService } from './modules/sales/sales-import.service';
 
 type ImportCliOptions = {
   filePath: string | null;
@@ -35,8 +36,8 @@ async function main(): Promise<void> {
     console.log(`Total rows in file: ${result.totalRows}`);
     console.log(`Rows mapped to sales: ${result.mappedRows}`);
     console.log(`Rows skipped (missing external ID): ${result.skippedRows}`);
-    console.log(`Already in DB (updated): ${result.updatedCount}`);
-    console.log(`Inserted as new: ${result.insertedCount}`);
+    console.log(`Already in DB: ${result.updatedCount}`);
+    console.log(`Imported successfully: ${result.insertedCount}`);
     console.log(`Processed unique rows: ${result.processedCount}`);
     console.log(`Source sync state: ${result.sourceSyncState}`);
   } finally {
@@ -61,6 +62,7 @@ function parseArgs(argv: string[]): ImportCliOptions {
 
     if (current === '--help' || current === '-h') {
       options.help = true;
+
       return options;
     }
 
@@ -71,19 +73,23 @@ function parseArgs(argv: string[]): ImportCliOptions {
 
     if (current === '--file') {
       const value = argv[i + 1];
+
       if (value && !value.startsWith('--')) {
         options.filePath = value;
         i += 1;
       }
+
       continue;
     }
 
     if (current === '--source-sync-state') {
       const value = argv[i + 1];
+
       if (value && !value.startsWith('--')) {
         options.sourceSyncState = value;
         i += 1;
       }
+
       continue;
     }
   }

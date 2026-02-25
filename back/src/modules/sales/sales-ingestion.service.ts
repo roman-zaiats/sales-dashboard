@@ -4,7 +4,7 @@ import { Types } from 'mongoose';
 
 import { env } from '../../app.env';
 import { SalesService } from './sales.service';
-import { SaleSourceRecord, SaleStatus } from './sales.types';
+import { ListingFee, SaleSourceRecord, SaleStatus } from './sales.types';
 
 type MongoSourceRecord = Record<string, unknown>;
 
@@ -298,14 +298,11 @@ export class SalesIngestionService implements OnApplicationShutdown {
 
     const createdAt = this.parseDateString(record.creationDate);
     const updatedAt = this.parseDateString(record.statusChangeDate);
+    const sourceListingId =
+      this.normalizeExternalSaleId(record._id) ?? this.normalizeExternalSaleId(record.ticketGroupId) ?? externalSaleId;
 
     return {
       externalSaleId,
-      listingId: this.normalizeText(record.ticketGroupId) ?? this.normalizeText(record.listingId) ?? null,
-      eventId: this.normalizeText(record.eventId),
-      quantity: this.normalizeInt(record.quantity),
-      price: this.normalizeNumber(record.price) ?? this.normalizeNumber(record.lowerPrice),
-      currency: this.normalizeText(record.currency),
       buyerEmail: this.normalizeText(record.buyerEmail),
       sourceStatus: this.normalizeStatus(record.status),
       createdAt: createdAt ? createdAt.toISOString() : null,
@@ -313,6 +310,44 @@ export class SalesIngestionService implements OnApplicationShutdown {
       sourcePayload: {
         raw: record,
         sourceId: externalSaleId,
+      },
+      listing: {
+        sourceListingId,
+        listingId: this.normalizeText(record.ticketGroupId) ?? this.normalizeText(record.listingId),
+        adviceIndex: this.normalizeInt(record.adviceIndex),
+        area: this.normalizeText(record.area),
+        assignedPos: this.normalizeText(record.assignedPos),
+        creationDate: createdAt ? createdAt.toISOString() : null,
+        creationType: this.normalizeText(record.creationType),
+        eventId: this.normalizeText(record.eventId),
+        eventName: this.normalizeText(record.eventName),
+        exchange: this.normalizeText(record.exchange),
+        exchangesForSale: this.normalizeStringArray(record.exchangesForSale),
+        extraFee: this.parseDecimal(record.extraFee),
+        faceValue: this.parseDecimal(record.faceValue),
+        lastPosModificationDate: this.parseDateString(record.lastPosModificationDate)?.toISOString() ?? null,
+        lowerPrice: this.parseDecimal(record.lowerPrice),
+        offerId: this.normalizeText(record.offerId),
+        originalSection: this.normalizeText(record.originalSection),
+        placesIds: this.normalizeStringArray(record.placesIds),
+        price: this.parseDecimal(record.price),
+        priceMultiplier: this.parseDecimal(record.priceMultiplier),
+        pricingRuleMultiplierChangeTime:
+          this.parseDateString(record.pricingRuleMultiplierChangeTime)?.toISOString() ?? null,
+        quality: this.parseDecimal(record.quality),
+        quantity: this.normalizeInt(record.quantity),
+        row: this.normalizeText(record.row),
+        rulePriceMultiplierIndex: this.normalizeInt(record.rulePriceMultiplierIndex),
+        section: this.normalizeText(record.section),
+        splitRule: this.normalizeText(record.splitRule),
+        startRow: this.normalizeText(record.startRow),
+        status: this.normalizeText(record.status),
+        statusChangeDate: this.parseDateString(record.statusChangeDate)?.toISOString() ?? null,
+        subPlatform: this.normalizeText(record.subPlatform),
+        tags: this.normalizeStringArray(record.tags),
+        ticketTypeName: this.normalizeText(record.ticketTypeName),
+        venueName: this.normalizeText(record.venueName),
+        fees: this.normalizeFees(record.fees),
       },
     };
   }
@@ -347,7 +382,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
     return null;
   }
 
-  private normalizeNumber(value: unknown): number | null {
+  private parseDecimal(value: unknown): number | null {
     if (typeof value === 'number' && Number.isFinite(value)) {
       return value;
     }
@@ -358,7 +393,61 @@ export class SalesIngestionService implements OnApplicationShutdown {
       return Number.isFinite(parsed) ? parsed : null;
     }
 
+    if (value && typeof value === 'object' && '$numberDecimal' in value && typeof value.$numberDecimal === 'string') {
+      const parsed = Number(value.$numberDecimal);
+
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
     return null;
+  }
+
+  private normalizeStringArray(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .map(item => {
+        if (typeof item === 'string') {
+          const normalized = item.trim();
+
+          return normalized.length > 0 ? normalized : null;
+        }
+
+        if (typeof item === 'number' && Number.isFinite(item)) {
+          return String(item);
+        }
+
+        if (item && typeof item === 'object' && '$oid' in item && typeof item.$oid === 'string') {
+          const normalized = item.$oid.trim();
+
+          return normalized.length > 0 ? normalized : null;
+        }
+
+        if (item && typeof item === 'object' && '$numberDecimal' in item && typeof item.$numberDecimal === 'string') {
+          const normalized = item.$numberDecimal.trim();
+
+          return normalized.length > 0 ? normalized : null;
+        }
+
+        return null;
+      })
+      .filter((item): item is string => item !== null);
+  }
+
+  private normalizeFees(value: unknown): ListingFee[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .filter((item): item is Record<string, unknown> => item != null && typeof item === 'object')
+      .map(item => ({
+        type: typeof item.type === 'string' ? item.type : undefined,
+        description: typeof item.description === 'string' ? item.description : undefined,
+        amount: this.parseDecimal(item.amount),
+      }));
   }
 
   private normalizeStatus(value: unknown): SaleStatus | null {

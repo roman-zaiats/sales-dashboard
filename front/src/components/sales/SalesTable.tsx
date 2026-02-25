@@ -1,21 +1,10 @@
 import { Link } from 'react-router-dom';
 
+import { saleDisplayLabel } from '@/lib/sales/sales-utils';
 import type { Sale } from '@/generated/graphql';
 
 type SalesTableProps = {
   sales: Sale[];
-};
-
-const toSaleLabel = (sale: Pick<Sale, 'externalSaleId' | 'listingId' | 'eventId'>): string => {
-  if (sale.listingId) {
-    return sale.listingId;
-  }
-
-  if (sale.eventId) {
-    return sale.eventId;
-  }
-
-  return sale.externalSaleId;
 };
 
 const formatDelay = (date: string | null | undefined): string => {
@@ -57,12 +46,12 @@ export const SalesTable = ({ sales }: SalesTableProps) => {
           ) : (
             sales.map(sale => (
               <tr key={sale.id} className="sales-table-row">
-                <td className="sales-table-cell">{toSaleLabel(sale)}</td>
+                <td className="sales-table-cell">{saleDisplayLabel(sale)}</td>
                 <td className="sales-table-cell">{sale.status}</td>
                 <td className="sales-table-cell">{new Date(sale.createdAt).toLocaleString()}</td>
                 <td className="sales-table-cell">{formatDelay(sale.deliveryDelayAt)}</td>
                 <td className="sales-table-cell">{sale.problemReason || '—'}</td>
-                <td className="sales-table-cell">{sale.tags.map(tag => tag.name).join(', ') || '—'}</td>
+                <td className="sales-table-cell">{sale.dashboardTags.map(tag => tag.name).join(', ') || '—'}</td>
                 <td className="sales-table-cell">{sale.filledBy?.fullName || '—'}</td>
                 <td className="sales-table-cell">
                   <Link className="text-sky-700 hover:text-sky-900" to={`/dashboard/sale/${sale.id}`}>

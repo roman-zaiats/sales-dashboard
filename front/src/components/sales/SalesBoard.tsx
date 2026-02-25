@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { type ReactNode } from 'react';
 
 import type { Sale } from '@/generated/graphql';
+import { saleDisplayLabel } from '@/lib/sales/sales-utils';
 
 type SalesBoardProps = {
   sales: Sale[];
@@ -27,7 +28,7 @@ const BoardCard = ({ sale }: { sale: Sale }): ReactNode => {
   return (
     <li className="sales-board-card">
       <strong className="text-sm text-slate-900">{sale.externalSaleId}</strong>
-      <p className="mt-1 text-sm text-slate-700">{sale.listingId || sale.eventId || '-'}</p>
+      <p className="mt-1 text-sm text-slate-700">{saleDisplayLabel(sale)}</p>
       <p className="mt-1 text-xs text-slate-500">Delay: {formatDelay(sale.deliveryDelayAt)}</p>
       <p className="mt-1 text-xs text-slate-500">Problem: {sale.problemReason || '—'}</p>
       <Link

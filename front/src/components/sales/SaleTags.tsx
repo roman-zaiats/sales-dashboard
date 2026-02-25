@@ -19,7 +19,7 @@ export const SaleTags = ({ sale, onAddTag, onRemoveTag, isSubmitting, disabled }
       return;
     }
 
-    if (sale.tags.some(tag => tag.name.toLowerCase() === normalized.toLowerCase())) {
+    if (sale.dashboardTags.some(tag => tag.name.toLowerCase() === normalized.toLowerCase())) {
       setNewTag('');
       return;
     }
@@ -33,10 +33,10 @@ export const SaleTags = ({ sale, onAddTag, onRemoveTag, isSubmitting, disabled }
       <h4 className="text-base font-semibold text-slate-900">Tags</h4>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        {sale.tags.length === 0 ? (
+        {sale.dashboardTags.length === 0 ? (
           <p className="text-sm text-slate-500">No tags added.</p>
         ) : (
-          sale.tags.map(tag => (
+          sale.dashboardTags.map(tag => (
             <span
               key={tag.id}
               className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"
@@ -75,4 +75,3 @@ export const SaleTags = ({ sale, onAddTag, onRemoveTag, isSubmitting, disabled }
     </section>
   );
 };
-
