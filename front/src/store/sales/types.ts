@@ -1,9 +1,4 @@
-export enum SaleStatus {
-  RECEIVED = 'RECEIVED',
-  COMPLETED = 'COMPLETED',
-  DELAYED = 'DELAYED',
-  PROBLEM = 'PROBLEM',
-}
+export type SaleStatus = 'RECEIVED' | 'COMPLETED' | 'DELAYED' | 'PROBLEM';
 
 export type SortDirection = 'ASC' | 'DESC';
 

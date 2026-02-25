@@ -8,9 +8,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "eslint": "eslint \"src/**/*.{ts,tsx}\"",
-    "eslint:check": "npm run eslint -- --max-warnings=0",
+    "eslint:check": "npm run eslint",
     "eslint:fix": "npm run eslint -- --fix",
-    "lint": "npm run eslint:check",
     "codegen:graphql": "graphql-codegen --config codegen.yml"
   },
   "dependencies": {

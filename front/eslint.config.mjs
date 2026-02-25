@@ -5,14 +5,13 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: ['**/*.js', '**/*.mjs', 'src/**/*.d.ts', 'dist/**/*', 'coverage/**/*'],
+    ignores: ['dist/**/*', 'coverage/**/*', 'src/**/*.d.ts', 'src/generated/**/*'],
   },
-  js.configs.recommended,
   {
+    files: ['**/*.{ts,tsx}'],
     plugins: {
       '@typescript-eslint': typescriptEslint,
     },
-
     languageOptions: {
       parser: tsParser,
       ecmaVersion: 'latest',
@@ -28,14 +27,17 @@ export default [
         ...globals.node,
       },
     },
-
     rules: {
+      ...js.configs.recommended.rules,
       'no-console': 'warn',
+      'no-unused-vars': 'off',
       curly: 'error',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
+          args: 'after-used',
+          ignoreRestSiblings: true,
           varsIgnorePattern: '^_',
           argsIgnorePattern: '^_',
         },
@@ -43,5 +45,9 @@ export default [
       '@typescript-eslint/require-await': 'error',
       '@typescript-eslint/return-await': ['error', 'always'],
     },
+  },
+  {
+    files: ['**/*.{jsx,js,mjs,cjs}'],
+    ...js.configs.recommended,
   },
 ];

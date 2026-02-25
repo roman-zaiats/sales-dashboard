@@ -11,6 +11,14 @@ This gate must be executed at the end of every phase using:
 ./scripts/phase-gate.sh
 ```
 
+The phase is considered incomplete until `./scripts/phase-gate.sh` returns exit code 0.
+After every run, if the gate reports failures, the agent must:
+1. fix all reported failures
+2. rerun the gate immediately
+3. repeat until a clean pass is achieved
+
+No phase may be closed on a partial pass, and no additional work or next phase may start before the gate passes.
+
 ### II. GraphQL Contract Ownership
 `back/schema.graphql` is the source of truth for GraphQL contract definitions. Front-end TypeScript GraphQL types must always be regenerated from this schema via `front/npm run codegen:graphql` and should not be hand-edited.
 
@@ -52,4 +60,4 @@ Constitution principles and repository defaults should be updated when architect
 - Changes to governance must update the version and the phase checks.
 - The standard for this phase-aware workstream is: verify and resolve each gate before continuing.
 
-**Version**: 1.2.0 | **Ratified**: 2026-02-24 | **Last Amended**: 2026-02-25
+**Version**: 1.2.1 | **Ratified**: 2026-02-24 | **Last Amended**: 2026-02-25
