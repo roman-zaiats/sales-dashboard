@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom';
 import { forwardRef, type HTMLAttributes } from 'react';
+import { Link } from 'react-router-dom';
 
 import type { Sale } from '@/generated/graphql';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { saleDisplayLabel } from '@/lib/sales/sales-utils';
 
 type SaleBoardCardProps = {
@@ -22,16 +23,24 @@ export const SaleBoardCard = forwardRef<HTMLLIElement, SaleBoardCardProps>(
 
     return (
       <li ref={ref} className={combinedClassName} {...liProps}>
-        <strong className="text-sm text-slate-900">{sale.externalSaleId}</strong>
-        <p className="mt-1 text-sm text-slate-700">{saleDisplayLabel(sale)}</p>
-        <p className="mt-1 text-xs text-slate-500">Delay: {formatDelay(sale.deliveryDelayAt)}</p>
-        <p className="mt-1 text-xs text-slate-500">Problem: {sale.problemReason || '—'}</p>
-        <Link
-          className="mt-3 inline-flex text-sm font-semibold text-sky-700 hover:text-sky-900"
-          to={`/dashboard/sale/${sale.id}`}
-        >
-          Open
-        </Link>
+        <Card>
+          <CardHeader>
+            <CardTitle>{sale.externalSaleId}</CardTitle>
+            <CardDescription>{saleDisplayLabel(sale)}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="mt-1 text-xs text-slate-500">Delay: {formatDelay(sale.deliveryDelayAt)}</p>
+            <p className="mt-1 text-xs text-slate-500">Problem: {sale.problemReason || '—'}</p>
+          </CardContent>
+          <CardFooter>
+            <Link
+              className="inline-flex text-sm font-semibold text-sky-700 hover:text-sky-900"
+              to={`/dashboard/sale/${sale.id}`}
+            >
+              Open
+            </Link>
+          </CardFooter>
+        </Card>
       </li>
     );
   },

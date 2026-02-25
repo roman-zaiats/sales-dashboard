@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { isPast, parseISO } from 'date-fns';
 
 import { DelayedSalesBadge } from '@/components/sales/DelayedSalesBadge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { saleDisplayLabel } from '@/lib/sales/sales-utils';
 import type { Sale } from '@/generated/graphql';
 
@@ -60,30 +61,29 @@ export const DelayedSalesTable = ({ sales }: DelayedSalesTableProps) => {
   const sorted = sortByUrgency(sales);
 
   return (
-    <div className="sales-table-shell">
-      <table className="sales-table">
-        <thead className="sales-table-head">
-          <tr>
-            <th className="sales-table-head-cell">Identifier</th>
-            <th className="sales-table-head-cell">Status</th>
-            <th className="sales-table-head-cell">Due</th>
-            <th className="sales-table-head-cell">Urgency</th>
-            <th className="sales-table-head-cell">Problem</th>
-            <th className="sales-table-head-cell">Tags</th>
-            <th className="sales-table-head-cell">Owner</th>
-            <th className="sales-table-head-cell">Open</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Identifier</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Due</TableHead>
+          <TableHead>Urgency</TableHead>
+          <TableHead>Problem</TableHead>
+          <TableHead>Tags</TableHead>
+          <TableHead>Owner</TableHead>
+          <TableHead>Open</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
           {sorted.length === 0 ? (
-            <tr>
-              <td colSpan={8} className="sales-table-cell">
+            <TableRow>
+              <TableCell colSpan={8}>
                 No delayed sales were returned for the current filters.
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ) : (
             sorted.map(sale => (
-              <tr
+              <TableRow
                 key={sale.id}
                 className={
                   isOverdue(sale.deliveryDelayAt)
@@ -91,25 +91,24 @@ export const DelayedSalesTable = ({ sales }: DelayedSalesTableProps) => {
                     : 'sales-table-row'
                 }
               >
-                <td className="sales-table-cell">{saleDisplayLabel(sale)}</td>
-                <td className="sales-table-cell">{sale.status}</td>
-                <td className="sales-table-cell">{formatDelay(sale.deliveryDelayAt)}</td>
-                <td className="sales-table-cell">
+                <TableCell>{saleDisplayLabel(sale)}</TableCell>
+                <TableCell>{sale.status}</TableCell>
+                <TableCell>{formatDelay(sale.deliveryDelayAt)}</TableCell>
+                <TableCell>
                   <DelayedSalesBadge sale={sale} />
-                </td>
-                <td className="sales-table-cell">{sale.problemReason || '—'}</td>
-                <td className="sales-table-cell">{sale.dashboardTags.map(tag => tag.name).join(', ') || '—'}</td>
-                <td className="sales-table-cell">{sale.filledBy?.fullName || '—'}</td>
-                <td className="sales-table-cell">
+                </TableCell>
+                <TableCell>{sale.problemReason || '—'}</TableCell>
+                <TableCell>{sale.dashboardTags.map(tag => tag.name).join(', ') || '—'}</TableCell>
+                <TableCell>{sale.filledBy?.fullName || '—'}</TableCell>
+                <TableCell>
                   <Link className="text-sky-700 hover:text-sky-900" to={`/dashboard/sale/${sale.id}`}>
                     Open
                   </Link>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))
           )}
-        </tbody>
-      </table>
-    </div>
+      </TableBody>
+    </Table>
   );
 };

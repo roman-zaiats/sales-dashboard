@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { Navigate, NavLink, Route, BrowserRouter, Routes, type To } from 'react-router-dom';
 
 import { apolloClient } from '@/lib/apollo-client';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuItem } from '@/components/ui/sidebar';
 import { DelayedSalesPage } from './dashboard/delayed/page';
 import { SaleDetailPage } from './dashboard/sale/page';
 import { SalesPage } from './dashboard/sales/page';
@@ -29,30 +30,37 @@ const sidebarNavClass = (isActive: boolean): string =>
 
 const SalesSidebar = () => {
   return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-slate-50 shadow-sm">
-      <div className="border-b border-slate-200 px-4 py-4">
+    <Sidebar>
+      <SidebarHeader>
         <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Workspace</p>
         <h1 className="mt-2 text-lg font-bold text-slate-900">Sales Operations</h1>
-      </div>
+      </SidebarHeader>
 
-      <nav className="flex-1 space-y-1 px-3 py-3" aria-label="Sales navigation">
-        {navLinks.map(link => (
-          <NavLink key={link.label} to={link.to} className={({ isActive }) => sidebarNavClass(isActive)}>
-            <span
-              className="grid h-6 w-6 place-items-center rounded-md bg-white/90 text-[14px] text-slate-500 group-hover:text-slate-700"
-              aria-hidden="true"
-            >
-              {link.icon}
-            </span>
-            <span>{link.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+      <SidebarContent aria-label="Sales navigation">
+        <SidebarMenu>
+          {navLinks.map(link => (
+            <SidebarMenuItem key={link.label}>
+              <NavLink
+                to={link.to}
+                className={({ isActive }) => sidebarNavClass(isActive)}
+              >
+                <span
+                  className="grid h-6 w-6 place-items-center rounded-md bg-white/90 text-[14px] text-slate-500 group-hover:text-slate-700"
+                  aria-hidden="true"
+                >
+                  {link.icon}
+                </span>
+                <span>{link.label}</span>
+              </NavLink>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarContent>
 
-      <footer className="border-t border-slate-200 px-4 py-3">
+      <SidebarFooter>
         <div className="rounded-md bg-white px-3 py-2 text-xs text-slate-500">Internal dashboard for operational triage.</div>
-      </footer>
-    </aside>
+      </SidebarFooter>
+    </Sidebar>
   );
 };
 

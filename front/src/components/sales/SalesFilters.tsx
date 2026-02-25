@@ -1,4 +1,7 @@
 import type { SaleStatus } from '@/generated/graphql';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { TagFilterInput } from '@/components/sales/TagFilterInput';
 
 type SalesFiltersProps = {
@@ -40,8 +43,7 @@ export const SalesFilters = ({
     <div className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-3 lg:grid-cols-6">
       <label className="flex flex-col gap-1 text-sm text-slate-700">
         Search
-        <input
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-sky-200 transition focus:ring-2"
+        <Input
           value={search}
           onChange={event => onSearchChange(event.target.value)}
           placeholder="Search by listing, event, email, or external ID"
@@ -50,8 +52,7 @@ export const SalesFilters = ({
 
       <label className="flex flex-col gap-1 text-sm text-slate-700">
         Status
-        <select
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-sky-200 transition focus:ring-2"
+        <Select
           value={status ?? 'ALL'}
           onChange={event =>
             onStatusChange(event.target.value === 'ALL' ? undefined : (event.target.value as SaleStatus))
@@ -62,13 +63,13 @@ export const SalesFilters = ({
           <option value="COMPLETED">Completed</option>
           <option value="DELAYED">Delayed</option>
           <option value="PROBLEM">Problem</option>
-        </select>
+        </Select>
       </label>
 
       <label className="flex flex-col gap-1 text-sm text-slate-700">
         Delay
-        <select
-          className={`rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-sky-200 transition focus:ring-2 ${
+        <Select
+          className={`${
             isHasDelayDisabled ? 'cursor-not-allowed opacity-70' : ''
           }`}
           value={hasDelay === undefined ? 'ALL' : String(hasDelay)}
@@ -85,13 +86,12 @@ export const SalesFilters = ({
           <option value="ALL">All</option>
           <option value="true">Has delay</option>
           <option value="false">No delay</option>
-        </select>
+        </Select>
       </label>
 
       <label className="flex flex-col gap-1 text-sm text-slate-700">
         Overdue only
-        <select
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-sky-200 transition focus:ring-2"
+        <Select
           value={overdueOnly === undefined ? 'ALL' : String(overdueOnly)}
           onChange={event => {
             const value = event.target.value;
@@ -105,20 +105,22 @@ export const SalesFilters = ({
           <option value="ALL">All</option>
           <option value="true">Only overdue</option>
           <option value="false">Include not overdue</option>
-        </select>
+        </Select>
       </label>
 
       <div className="md:col-span-2 lg:col-span-1">
         <TagFilterInput tagIds={tagIds} onTagsChange={onTagsChange} />
       </div>
 
-      <button
-        className="self-end rounded-md border border-slate-200 bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+      <Button
+        variant="default"
+        size="md"
+        className="self-end"
         type="button"
         onClick={clearAllFilters}
       >
         Clear filters
-      </button>
+      </Button>
     </div>
   );
 };

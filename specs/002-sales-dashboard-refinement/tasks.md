@@ -1,5 +1,9 @@
 # Tasks: Sales Operations Dashboard Refinement
 
+## Active Phase
+
+- Current phase moved to: **Phase 7 - User Story 5 (ShadCN Standard UI Refactor)**.
+
 **Input**: Design documents from `/specs/002-sales-dashboard-refinement/`
 **Prerequisites**: plan.md, spec.md
 
@@ -104,9 +108,9 @@
 
 **Independent Test**: Verify Sales, Delayed, and Detail routes use shared ShadCN shell and controls with consistent behavior.
 
-- [ ] T048 [P] [US5] Replace/align sales table controls in `front/src/components/sales/SaleListPage.tsx` with local UI primitives
-- [ ] T049 [US5] Replace/align board card controls and containers in `front/src/components/sales/SaleBoardCard.tsx`
-- [ ] T050 [P] [US5] Replace sidebar shell shell in `front/src/app/dashboard` to ShadCN `sidebar` primitives
+- [X] T048 [P] [US5] Replace/align sales table controls in `front/src/components/sales/SaleListPage.tsx` with local UI primitives
+- [X] T049 [US5] Replace/align board card controls and containers in `front/src/components/sales/SaleBoardCard.tsx`
+- [X] T050 [P] [US5] Replace sidebar shell shell in `front/src/app/dashboard` to ShadCN `sidebar` primitives
 - [ ] T051 [US5] Rework filter pane controls in `front/src/app/dashboard/sales` to use ShadCN input/select components
 - [ ] T052 [US5] Align delayed route UI to the same component system in `front/src/app/dashboard/delayed`
 - [ ] T053 [US5] Rework sale detail page interactions in `front/src/app/dashboard/sale`
