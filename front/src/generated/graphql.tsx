@@ -142,6 +142,7 @@ export type Query = {
   listUsersForAssignment: Array<User>;
   saleById?: Maybe<Sale>;
   salesList: SaleListPayload;
+  tags: Array<DashboardTag>;
 };
 
 
@@ -161,6 +162,12 @@ export type QuerySalesListArgs = {
   filter?: InputMaybe<SaleFilterInput>;
   pagination?: InputMaybe<PaginationInput>;
   sort?: InputMaybe<SaleSortInput>;
+};
+
+
+export type QueryTagsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Sale = {
@@ -395,6 +402,19 @@ export type ListUsersForAssignmentQueryVariables = Exact<{ [key: string]: never;
 
 
 export type ListUsersForAssignmentQuery = ListUsersForAssignmentQuery_Query;
+
+export type TagsQuery_tags_DashboardTag = { __typename?: 'DashboardTag', id: string, name: string };
+
+export type TagsQuery_Query = { __typename?: 'Query', tags: Array<TagsQuery_tags_DashboardTag> };
+
+
+export type TagsQueryVariables = Exact<{
+  search?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type TagsQuery = TagsQuery_Query;
 
 export const ListingDataFragmentDoc = gql`
     fragment ListingData on Listing {
@@ -923,3 +943,48 @@ export type ListUsersForAssignmentQueryHookResult = ReturnType<typeof useListUse
 export type ListUsersForAssignmentLazyQueryHookResult = ReturnType<typeof useListUsersForAssignmentLazyQuery>;
 export type ListUsersForAssignmentSuspenseQueryHookResult = ReturnType<typeof useListUsersForAssignmentSuspenseQuery>;
 export type ListUsersForAssignmentQueryResult = Apollo.QueryResult<ListUsersForAssignmentQuery, ListUsersForAssignmentQueryVariables>;
+export const TagsDocument = gql`
+    query Tags($search: String, $limit: Int = 100) {
+  tags(search: $search, limit: $limit) {
+    id
+    name
+  }
+}
+    `;
+
+/**
+ * __useTagsQuery__
+ *
+ * To run a query within a React component, call `useTagsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTagsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTagsQuery({
+ *   variables: {
+ *      search: // value for 'search'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useTagsQuery(baseOptions?: Apollo.QueryHookOptions<TagsQuery, TagsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TagsQuery, TagsQueryVariables>(TagsDocument, options);
+      }
+export function useTagsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TagsQuery, TagsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TagsQuery, TagsQueryVariables>(TagsDocument, options);
+        }
+// @ts-ignore
+export function useTagsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<TagsQuery, TagsQueryVariables>): Apollo.UseSuspenseQueryResult<TagsQuery, TagsQueryVariables>;
+export function useTagsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TagsQuery, TagsQueryVariables>): Apollo.UseSuspenseQueryResult<TagsQuery | undefined, TagsQueryVariables>;
+export function useTagsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TagsQuery, TagsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<TagsQuery, TagsQueryVariables>(TagsDocument, options);
+        }
+export type TagsQueryHookResult = ReturnType<typeof useTagsQuery>;
+export type TagsLazyQueryHookResult = ReturnType<typeof useTagsLazyQuery>;
+export type TagsSuspenseQueryHookResult = ReturnType<typeof useTagsSuspenseQuery>;
+export type TagsQueryResult = Apollo.QueryResult<TagsQuery, TagsQueryVariables>;

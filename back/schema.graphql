@@ -6,6 +6,7 @@ type Query {
   saleById(id: ID!): Sale
   delayedSales(filter: SaleFilterInput, sort: SaleSortInput, pagination: PaginationInput = { skip: 0, limit: 50 }): SaleListPayload!
   listUsersForAssignment: [User!]!
+  tags(search: String, limit: Int = 100): [DashboardTag!]!
 }
 
 type Mutation {

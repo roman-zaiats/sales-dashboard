@@ -1,4 +1,5 @@
 import type { SaleStatus } from '@/generated/graphql';
+import { TagFilterInput } from '@/components/sales/TagFilterInput';
 
 type SalesFiltersProps = {
   search: string;
@@ -107,22 +108,9 @@ export const SalesFilters = ({
         </select>
       </label>
 
-      <label className="flex flex-col gap-1 text-sm text-slate-700 md:col-span-2 lg:col-span-1">
-        Tag IDs (comma-separated)
-        <input
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-sky-200 transition focus:ring-2"
-          value={tagIds.join(',')}
-          onChange={event =>
-            onTagsChange(
-              event.target.value
-                .split(',')
-                .map(value => value.trim())
-                .filter(Boolean),
-            )
-          }
-          placeholder="e.g. tagId1, tagId2"
-        />
-      </label>
+      <div className="md:col-span-2 lg:col-span-1">
+        <TagFilterInput tagIds={tagIds} onTagsChange={onTagsChange} />
+      </div>
 
       <button
         className="self-end rounded-md border border-slate-200 bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"

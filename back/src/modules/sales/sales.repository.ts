@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, count, desc, eq, inArray, lt, type SQL, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, lt, or, type SQL, sql } from 'drizzle-orm';
 
 import { type SalesDatabaseContext } from './db/client';
 import { ingestionState, listings, saleComments, saleIngestionRuns, sales, saleTags, tags, users } from './db/schema';
@@ -603,8 +603,16 @@ export class SalesRepository {
                   return null;
                 }
 
-                const listingCreatedAt =
-                  this.parseDateField(record.listing.creationDate) ?? this.parseDateField(record.createdAt) ?? new Date();
+                let listingCreatedAt = this.parseDateField(record.listing.creationDate);
+
+                if (!listingCreatedAt) {
+                  listingCreatedAt = this.parseDateField(record.createdAt);
+                }
+
+                if (!listingCreatedAt) {
+                  listingCreatedAt = new Date();
+                }
+
                 const listingUpdatedAt =
                   this.parseDateField(record.listing.statusChangeDate) ??
                   this.parseDateField(record.updatedAt) ??
@@ -716,6 +724,39 @@ export class SalesRepository {
     return Number(response.total ?? 0);
   }
 
+  async listTags(search?: string, limit = 100): Promise<DashboardTag[]> {
+    await this.initializeSchema();
+
+    const maxLimit = Math.max(1, Math.min(Math.floor(Number(limit) || 0), 500));
+    const safeLimit = Number.isNaN(maxLimit) || maxLimit < 1 ? 100 : maxLimit;
+    const searchValue = search?.trim();
+    const normalizedSearch = searchValue ? `%${searchValue}%` : undefined;
+
+    const rows = normalizedSearch
+      ? await this.db
+          .select({
+            id: tags.id,
+            name: tags.name,
+          })
+          .from(tags)
+          .where(sql`${tags.name} ILIKE ${normalizedSearch}`)
+          .orderBy(asc(tags.name))
+          .limit(safeLimit)
+      : await this.db
+          .select({
+            id: tags.id,
+            name: tags.name,
+          })
+          .from(tags)
+          .orderBy(asc(tags.name))
+          .limit(safeLimit);
+
+    return rows.map(row => ({
+      id: row.id,
+      name: row.name,
+    }));
+  }
+
   async listUsersForAssignment(): Promise<Array<{ id: string; fullName: string }>> {
     await this.initializeSchema();
     const rows = await this.db
@@ -784,12 +825,26 @@ export class SalesRepository {
     const normalizedTagIds = Array.from(new Set((filter.tagIds ?? []).map(tagId => tagId).filter(Boolean)));
 
     if (normalizedTagIds.length > 0) {
-      const tagSaleIds = this.db
-        .select({ saleId: saleTags.saleId })
-        .from(saleTags)
-        .where(inArray(saleTags.tagId, normalizedTagIds));
+      const { tagIds, tagNames } = this.splitTagFilterValues(normalizedTagIds);
+      const tagFilters: SQL<unknown>[] = [];
 
-      whereClauses.push(inArray(sales.id, tagSaleIds));
+      if (tagIds.length > 0) {
+        tagFilters.push(inArray(saleTags.tagId, tagIds));
+      }
+
+      if (tagNames.length > 0) {
+        tagFilters.push(inArray(sql`lower(${tags.name})`, tagNames));
+      }
+
+      if (tagFilters.length > 0) {
+        const tagSaleIds = this.db
+          .select({ saleId: saleTags.saleId })
+          .from(saleTags)
+          .leftJoin(tags, eq(tags.id, saleTags.tagId))
+          .where(tagFilters.length === 1 ? tagFilters[0] : or(...tagFilters));
+
+        whereClauses.push(inArray(sales.id, tagSaleIds));
+      }
     }
 
     if (filter.has_delay === true) {
@@ -887,6 +942,38 @@ export class SalesRepository {
     }
 
     return tagsBySale;
+  }
+
+  private splitTagFilterValues(tagIds: string[]): {
+    tagIds: string[];
+    tagNames: string[];
+  } {
+    const normalizedTagIds = new Set<string>();
+    const normalizedTagNames = new Set<string>();
+
+    for (const rawTag of tagIds) {
+      const normalized = rawTag.trim().replace(/\s+/g, ' ');
+
+      if (!normalized) {
+        continue;
+      }
+
+      if (this.isLikelyTagId(normalized)) {
+        normalizedTagIds.add(normalized);
+        continue;
+      }
+
+      normalizedTagNames.add(normalized.toLowerCase());
+    }
+
+    return {
+      tagIds: [...normalizedTagIds],
+      tagNames: [...normalizedTagNames],
+    };
+  }
+
+  private isLikelyTagId(value: string): boolean {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
   }
 
   private async loadCommentsForSales(saleIds: string[]): Promise<Map<string, SaleComment[]>> {

@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import {
   closestCorners,
   type DragEndEvent,
@@ -13,21 +12,16 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { Link } from 'react-router-dom';
 import type { Sale, SaleStatus } from '@/generated/graphql';
 import { SALE_STALE_EDIT_WARNING } from '@/store/sales/sale-detail.mutations';
 import { SALE_BOARD_COLUMNS, SALE_BOARD_LABELS } from '@/app/dashboard/sales/status';
 import { isValidStatusTransition } from '@/lib/sales/status';
+import { SaleBoardCard } from '@/components/sales/SaleBoardCard';
 import { useSalesBoardStore } from '@/store/sales/sales-board.store';
-import { saleDisplayLabel } from '@/lib/sales/sales-utils';
 
 type BoardDraggableBoardProps = {
   sales: Sale[];
   onWarning?: (message: string | null) => void;
-};
-
-type SaleCardProps = {
-  sale: Sale;
 };
 
 type BoardColumnProps = {
@@ -36,15 +30,7 @@ type BoardColumnProps = {
   isOver: boolean;
 };
 
-const formatDelay = (value: string | null | undefined): string => {
-  if (!value) {
-    return 'No Delay';
-  }
-
-  return new Date(value).toLocaleString();
-};
-
-const BoardCard = ({ sale }: SaleCardProps) => {
+const DraggableSaleBoardCard = ({ sale }: { sale: Sale }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: sale.id,
     data: {
@@ -60,18 +46,13 @@ const BoardCard = ({ sale }: SaleCardProps) => {
   };
 
   return (
-    <li className="sales-board-card" ref={setNodeRef} style={style} {...listeners} {...attributes}>
-      <strong className="text-sm text-slate-900">{sale.externalSaleId}</strong>
-      <p className="mt-1 text-sm text-slate-700">{saleDisplayLabel(sale)}</p>
-      <p className="mt-1 text-xs text-slate-500">Delay: {formatDelay(sale.deliveryDelayAt)}</p>
-      <p className="mt-1 text-xs text-slate-500">Problem: {sale.problemReason || '—'}</p>
-      <Link
-        className="mt-3 inline-flex text-sm font-semibold text-sky-700 hover:text-sky-900"
-        to={`/dashboard/sale/${sale.id}`}
-      >
-        Open
-      </Link>
-    </li>
+    <SaleBoardCard
+      ref={setNodeRef}
+      sale={sale}
+      style={style}
+      {...listeners}
+      {...attributes}
+    />
   );
 };
 
@@ -228,7 +209,7 @@ export const BoardDraggableBoard = ({ sales, onWarning }: BoardDraggableBoardPro
                   No items
                 </li>
               ) : (
-                salesByStatus[status].map(sale => <BoardCard key={sale.id} sale={sale} />)
+                salesByStatus[status].map(sale => <DraggableSaleBoardCard key={sale.id} sale={sale} />)
               )}
             </BoardColumn>
           ))}

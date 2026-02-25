@@ -1,56 +1,37 @@
-import { Link } from 'react-router-dom';
 import { type ReactNode } from 'react';
 
 import type { Sale } from '@/generated/graphql';
-import { saleDisplayLabel } from '@/lib/sales/sales-utils';
+import { SALE_BOARD_LABELS } from '@/app/dashboard/sales/status';
+import { SaleBoardCard } from '@/components/sales/SaleBoardCard';
 
 type SalesBoardProps = {
   sales: Sale[];
 };
 
-const STATUS_COLUMNS = ['RECEIVED', 'COMPLETED', 'DELAYED', 'PROBLEM'] as const;
+type StatusColumn = 'RECEIVED' | 'COMPLETED' | 'DELAYED' | 'PROBLEM';
 
-type StatusColumn = (typeof STATUS_COLUMNS)[number];
+const STATUS_COLUMNS: StatusColumn[] = ['RECEIVED', 'COMPLETED', 'DELAYED', 'PROBLEM'];
 
 const byStatus = (sales: Sale[], status: StatusColumn): Sale[] => {
   return sales.filter(sale => sale.status === status);
 };
 
-const formatDelay = (value: string | null | undefined): string => {
-  if (!value) {
-    return 'No Delay';
-  }
-
-  return new Date(value).toLocaleString();
-};
-
-const BoardCard = ({ sale }: { sale: Sale }): ReactNode => {
-  return (
-    <li className="sales-board-card">
-      <strong className="text-sm text-slate-900">{sale.externalSaleId}</strong>
-      <p className="mt-1 text-sm text-slate-700">{saleDisplayLabel(sale)}</p>
-      <p className="mt-1 text-xs text-slate-500">Delay: {formatDelay(sale.deliveryDelayAt)}</p>
-      <p className="mt-1 text-xs text-slate-500">Problem: {sale.problemReason || '—'}</p>
-      <Link
-        className="mt-3 inline-flex text-sm font-semibold text-sky-700 hover:text-sky-900"
-        to={`/dashboard/sale/${sale.id}`}
-      >
-        Open
-      </Link>
-    </li>
-  );
-};
+const BoardCard = ({ sale }: { sale: Sale }): ReactNode => <SaleBoardCard sale={sale} />;
 
 export const SalesBoard = ({ sales }: SalesBoardProps) => {
   return (
     <div className="sales-board-grid">
       {STATUS_COLUMNS.map(status => (
         <section key={status} className="sales-board-column">
-          <h3 className="sales-board-title">{status}</h3>
+          <h3 className="sales-board-title">{SALE_BOARD_LABELS[status] || status}</h3>
           <ul className="mt-3 grid gap-2">
-            {byStatus(sales, status).length === 0 ? <li key={`${status}-empty`} className="text-sm text-slate-500">No items</li> : byStatus(sales, status).map(sale => (
-              <BoardCard sale={sale} key={sale.id} />
-            ))}
+            {byStatus(sales, status).length === 0 ? (
+              <li key={`${status}-empty`} className="text-sm text-slate-500">
+                No items
+              </li>
+            ) : (
+              byStatus(sales, status).map(sale => <BoardCard sale={sale} key={sale.id} />)
+            )}
           </ul>
         </section>
       ))}

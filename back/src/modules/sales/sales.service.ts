@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { SalesRepository } from './sales.repository';
 import type {
+  DashboardTag,
   PaginationInput,
   Sale,
   SaleComment,
@@ -26,7 +27,9 @@ export class SalesService {
     sort?: SaleSortInput,
     pagination?: PaginationInput,
   ): Promise<SaleListPayload> {
-    const payload = await this.salesRepository.listSales(filter, sort, pagination);
+    const normalizedFilter = this.normalizeSaleFilter(filter);
+
+    const payload = await this.salesRepository.listSales(normalizedFilter, sort, pagination);
     this.logger.debug(`salesList requested: ${payload.totalCount} total`);
 
     return payload;
@@ -41,9 +44,11 @@ export class SalesService {
     sort: SaleSortInput = { field: 'delivery_delay_at', direction: 'ASC' },
     pagination: PaginationInput = {},
   ) {
+    const normalizedFilter = this.normalizeSaleFilter(filter);
+
     return await this.salesRepository.listDelayedSales(
       {
-        ...filter,
+        ...normalizedFilter,
         has_delay: true,
       },
       {
@@ -167,6 +172,10 @@ export class SalesService {
     await this.salesRepository.setIngestionCursor(key, value);
   }
 
+  async listTags(search?: string, limit?: number): Promise<DashboardTag[]> {
+    return await this.salesRepository.listTags(search, limit);
+  }
+
   async upsertSalesFromSource(
     records: SaleSourceRecord[],
     sourceSyncState: string,
@@ -223,5 +232,38 @@ export class SalesService {
     }
 
     return parsed.toISOString();
+  }
+
+  private normalizeSaleFilter(filter?: SaleFilterInput): SaleFilterInput {
+    const baseFilter = filter ?? {};
+
+    return {
+      ...baseFilter,
+      tagIds: this.normalizeTagIds(baseFilter.tagIds),
+    };
+  }
+
+  private normalizeTagIds(tagIds?: string[]): string[] {
+    if (!tagIds?.length) {
+      return [];
+    }
+
+    const normalized = new Map<string, string>();
+
+    for (const rawTagId of tagIds) {
+      const trimmed = rawTagId.trim().replace(/\s+/g, ' ');
+
+      if (!trimmed) {
+        continue;
+      }
+
+      const key = trimmed.toLowerCase();
+
+      if (!normalized.has(key)) {
+        normalized.set(key, trimmed);
+      }
+    }
+
+    return [...normalized.values()];
   }
 }

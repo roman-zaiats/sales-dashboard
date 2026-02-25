@@ -36,6 +36,14 @@ export class SalesResolver {
     return this.salesService.listUsersForAssignment();
   }
 
+  @Query()
+  tags(
+    @Args('search', { nullable: true }) search?: string,
+    @Args('limit', { nullable: true }) limit?: number,
+  ): ReturnType<SalesService['listTags']> {
+    return this.salesService.listTags(search, limit);
+  }
+
   @Mutation()
   async updateSaleStatus(
     @Args('id', ParseUUIDPipe) id: string,

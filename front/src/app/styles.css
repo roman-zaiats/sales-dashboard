@@ -75,4 +75,20 @@
   .sales-board-card-overlay {
     @apply rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow;
   }
+
+  .tag-filter-input-shell {
+    @apply flex min-h-8 flex-wrap items-center gap-1 rounded-md;
+  }
+
+  .tag-filter-chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-1 text-xs font-medium text-sky-900;
+  }
+
+  .tag-filter-input {
+    @apply min-w-0 flex-1 border-none bg-transparent px-0 py-0 text-sm text-slate-700 outline-none;
+  }
+
+  .tag-filter-suggestions {
+    @apply mt-1 max-h-40 overflow-y-auto rounded-md border border-slate-200 bg-white p-2 shadow-sm;
+  }
 }

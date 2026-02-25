@@ -90,13 +90,13 @@
 
 **Independent Test**: Open tag selector, use focus suggestions + type new tag, select multiple values, and validate OR-based results.
 
-- [ ] T041 [P] [US4] Extend contract for tag suggestions in `back/schema.graphql` (`tags` query input/output)
-- [ ] T042 [US4] Implement suggestion query resolver in `back/src/modules/sales/sales.resolver.ts`
-- [ ] T043 [US4] Implement tag suggestion data access in `back/src/modules/sales/sales.repository.ts`
-- [ ] T044 [US4] Regenerate frontend GraphQL types in `front/src/generated/graphql.tsx` via `front/npm run codegen:graphql`
-- [ ] T045 [P] [US4] Build multi-select tag control with suggestion dropdown in `front/src/components/sales/TagFilterInput.tsx`
-- [ ] T046 [US4] Persist typed and selected tags through existing filter flow in `front/src/store/sales/sales.filters.ts`
-- [ ] T047 [US4] Apply OR-match filter semantics in backend filter parser in `back/src/modules/sales/sales.service.ts`
+- [X] T041 [P] [US4] Extend contract for tag suggestions in `back/schema.graphql` (`tags` query input/output)
+- [X] T042 [US4] Implement suggestion query resolver in `back/src/modules/sales/sales.resolver.ts`
+- [X] T043 [US4] Implement tag suggestion data access in `back/src/modules/sales/sales.repository.ts`
+- [X] T044 [US4] Regenerate frontend GraphQL types in `front/src/generated/graphql.tsx` via `front/npm run codegen:graphql`
+- [X] T045 [P] [US4] Build multi-select tag control with suggestion dropdown in `front/src/components/sales/TagFilterInput.tsx`
+- [X] T046 [US4] Persist typed and selected tags through existing filter flow in `front/src/store/sales/sales.filters.ts`
+- [X] T047 [US4] Apply OR-match filter semantics in backend filter parser in `back/src/modules/sales/sales.service.ts`
 
 ## Phase 7: User Story 5 - ShadCN Standard UI Refactor (Priority: P5)
 

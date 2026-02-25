@@ -8,6 +8,7 @@ import {
   SaleSortField,
   useDelayedSalesQuery,
 } from '@/generated/graphql';
+import { normalizeTagFilters } from './sales.filters';
 
 const PAGE_SIZE = 50;
 
@@ -31,7 +32,7 @@ export const useDelayedSalesListStore = () => {
     () => ({
       search: search || undefined,
       status,
-      tagIds: tagIds.length ? tagIds : undefined,
+      tagIds: normalizeTagFilters(tagIds),
       overdueOnly,
     }),
     [search, status, tagIds, overdueOnly],

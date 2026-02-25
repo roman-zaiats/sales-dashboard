@@ -8,6 +8,7 @@ import {
   SaleSortField,
   useSalesListQuery,
 } from '@/generated/graphql';
+import { normalizeTagFilters } from './sales.filters';
 
 const PAGE_SIZE = 50;
 
@@ -37,7 +38,7 @@ export const useSalesListStore = () => {
   const filter = useMemo<SalesListFilterInput>(() => ({
     search: search || undefined,
     status,
-    tagIds: tagIds.length ? tagIds : undefined,
+    tagIds: normalizeTagFilters(tagIds),
     hasDelay,
     overdueOnly,
   }), [search, status, tagIds, hasDelay, overdueOnly]);

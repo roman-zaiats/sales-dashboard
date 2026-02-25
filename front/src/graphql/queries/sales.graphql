@@ -115,3 +115,10 @@ query ListUsersForAssignment {
     fullName
   }
 }
+
+query Tags($search: String, $limit: Int = 100) {
+  tags(search: $search, limit: $limit) {
+    id
+    name
+  }
+}
