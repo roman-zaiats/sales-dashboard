@@ -1,0 +1,101 @@
+scalar DateTime
+scalar JSON
+
+type Query {
+  salesList(filter: SaleFilterInput, sort: SaleSortInput, pagination: PaginationInput = { skip: 0, limit: 50 }): SaleListPayload!
+  saleById(id: ID!): Sale
+  delayedSales(filter: SaleFilterInput, sort: SaleSortInput, pagination: PaginationInput = { skip: 0, limit: 50 }): SaleListPayload!
+  listUsersForAssignment: [User!]!
+}
+
+type Mutation {
+  updateSaleStatus(id: ID!, status: SaleStatus!, expected_updated_at: DateTime): Sale!
+  updateSaleDelay(id: ID!, delivery_delay_at: DateTime, expected_updated_at: DateTime): Sale!
+  updateSaleProblem(id: ID!, problem_reason: String, expected_updated_at: DateTime): Sale!
+  setSaleFilledBy(id: ID!, user_id: ID!): Sale!
+  addSaleTag(id: ID!, tag_name: String!): Sale!
+  removeSaleTag(id: ID!, tag_name: String!): Sale!
+  addSaleComment(id: ID!, comment: String!): SaleComment!
+}
+
+type SaleListPayload {
+  items: [Sale!]!
+  totalCount: Int!
+}
+
+enum SaleStatus {
+  RECEIVED
+  COMPLETED
+  DELAYED
+  PROBLEM
+}
+
+type User {
+  id: ID!
+  authSub: String
+  firstName: String
+  lastName: String
+  fullName: String!
+}
+
+type Sale {
+  id: ID!
+  externalSaleId: String!
+  listingId: String
+  eventId: String
+  quantity: Int
+  price: Float
+  currency: String
+  buyerEmail: String
+  sourcePayload: JSON
+  status: SaleStatus!
+  deliveryDelayAt: DateTime
+  problemReason: String
+  filledBy: User
+  tags: [SaleTag!]!
+  comments: [SaleComment!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type SaleTag {
+  id: ID!
+  name: String!
+}
+
+type SaleComment {
+  id: ID!
+  author: String!
+  comment: String!
+  createdAt: DateTime!
+}
+
+input PaginationInput {
+  skip: Int = 0
+  limit: Int = 50
+}
+
+input SaleFilterInput {
+  status: SaleStatus
+  tagIds: [ID!]
+  has_delay: Boolean
+  overdue_only: Boolean
+  search: String
+}
+
+input SaleSortInput {
+  field: SaleSortField!
+  direction: SortDirection!
+}
+
+enum SaleSortField {
+  created_at
+  updated_at
+  delivery_delay_at
+  status
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}

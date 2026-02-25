@@ -1,0 +1,24 @@
+/reference
+
+# Template dependencies and generated artifacts
+# Environment files for this workspace
+.env
+.env.*
+back/.env
+back/.env.*
+front/.env
+front/.env.*
+
+# Node/TypeScript build artifacts
+node_modules/
+dist/
+build/
+coverage/
+*.log
+
+# Tooling + OS noise
+.DS_Store
+.vscode/
+.idea/
+*.tmp
+*.swp

@@ -1,0 +1,109 @@
+query SalesList($filter: SaleFilterInput, $sort: SaleSortInput, $pagination: PaginationInput) {
+  salesList(filter: $filter, sort: $sort, pagination: $pagination) {
+    items {
+      id
+      externalSaleId
+      listingId
+      eventId
+      status
+      deliveryDelayAt
+      problemReason
+      sourcePayload
+      createdAt
+      updatedAt
+      tags {
+        id
+        name
+      }
+      comments {
+        id
+        author
+        comment
+        createdAt
+      }
+      filledBy {
+        id
+        fullName
+        firstName
+        lastName
+      }
+    }
+    totalCount
+  }
+}
+
+query SaleById($id: ID!) {
+  saleById(id: $id) {
+    id
+    externalSaleId
+    listingId
+    eventId
+      status
+      deliveryDelayAt
+      problemReason
+      sourcePayload
+      createdAt
+      updatedAt
+    filledBy {
+      id
+      authSub
+      firstName
+      lastName
+      fullName
+    }
+    tags {
+      id
+      name
+    }
+    comments {
+      id
+      author
+      comment
+      createdAt
+    }
+  }
+}
+
+query DelayedSales($filter: SaleFilterInput, $sort: SaleSortInput, $pagination: PaginationInput) {
+  delayedSales(filter: $filter, sort: $sort, pagination: $pagination) {
+    items {
+      id
+      externalSaleId
+      listingId
+      eventId
+      status
+      deliveryDelayAt
+      problemReason
+      sourcePayload
+      createdAt
+      updatedAt
+      tags {
+        id
+        name
+      }
+      comments {
+        id
+        author
+        comment
+        createdAt
+      }
+      filledBy {
+        id
+        fullName
+        firstName
+        lastName
+      }
+    }
+    totalCount
+  }
+}
+
+query ListUsersForAssignment {
+  listUsersForAssignment {
+    id
+    authSub
+    firstName
+    lastName
+    fullName
+  }
+}

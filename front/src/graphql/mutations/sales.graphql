@@ -1,0 +1,200 @@
+mutation UpdateSaleStatus($id: ID!, $status: SaleStatus!, $expectedUpdatedAt: DateTime) {
+  updateSaleStatus(id: $id, status: $status, expected_updated_at: $expectedUpdatedAt) {
+    id
+    externalSaleId
+    listingId
+    eventId
+    status
+    deliveryDelayAt
+    problemReason
+    sourcePayload
+    createdAt
+    updatedAt
+    filledBy {
+      id
+      authSub
+      firstName
+      lastName
+      fullName
+    }
+    tags {
+      id
+      name
+    }
+    comments {
+      id
+      author
+      comment
+      createdAt
+    }
+  }
+}
+
+mutation UpdateSaleDelay($id: ID!, $deliveryDelayAt: DateTime, $expectedUpdatedAt: DateTime) {
+  updateSaleDelay(id: $id, delivery_delay_at: $deliveryDelayAt, expected_updated_at: $expectedUpdatedAt) {
+    id
+    externalSaleId
+    listingId
+    eventId
+    status
+    deliveryDelayAt
+    problemReason
+    sourcePayload
+    createdAt
+    updatedAt
+    filledBy {
+      id
+      authSub
+      firstName
+      lastName
+      fullName
+    }
+    tags {
+      id
+      name
+    }
+    comments {
+      id
+      author
+      comment
+      createdAt
+    }
+  }
+}
+
+mutation UpdateSaleProblem($id: ID!, $problemReason: String, $expectedUpdatedAt: DateTime) {
+  updateSaleProblem(id: $id, problem_reason: $problemReason, expected_updated_at: $expectedUpdatedAt) {
+    id
+    externalSaleId
+    listingId
+    eventId
+    status
+    deliveryDelayAt
+    problemReason
+    sourcePayload
+    createdAt
+    updatedAt
+    filledBy {
+      id
+      authSub
+      firstName
+      lastName
+      fullName
+    }
+    tags {
+      id
+      name
+    }
+    comments {
+      id
+      author
+      comment
+      createdAt
+    }
+  }
+}
+
+mutation AddSaleTag($id: ID!, $tagName: String!) {
+  addSaleTag(id: $id, tag_name: $tagName) {
+    id
+    externalSaleId
+    listingId
+    eventId
+    status
+    deliveryDelayAt
+    problemReason
+    sourcePayload
+    createdAt
+    updatedAt
+    filledBy {
+      id
+      authSub
+      firstName
+      lastName
+      fullName
+    }
+    tags {
+      id
+      name
+    }
+    comments {
+      id
+      author
+      comment
+      createdAt
+    }
+  }
+}
+
+mutation RemoveSaleTag($id: ID!, $tagName: String!) {
+  removeSaleTag(id: $id, tag_name: $tagName) {
+    id
+    externalSaleId
+    listingId
+    eventId
+    status
+    deliveryDelayAt
+    problemReason
+    sourcePayload
+    createdAt
+    updatedAt
+    filledBy {
+      id
+      authSub
+      firstName
+      lastName
+      fullName
+    }
+    tags {
+      id
+      name
+    }
+    comments {
+      id
+      author
+      comment
+      createdAt
+    }
+  }
+}
+
+mutation AddSaleComment($id: ID!, $comment: String!) {
+  addSaleComment(id: $id, comment: $comment) {
+    id
+    author
+    comment
+    createdAt
+  }
+}
+
+mutation SetSaleFilledBy($id: ID!, $userId: ID!) {
+  setSaleFilledBy(id: $id, user_id: $userId) {
+    id
+    externalSaleId
+    listingId
+    eventId
+    status
+    deliveryDelayAt
+    problemReason
+    sourcePayload
+    createdAt
+    updatedAt
+    filledBy {
+      id
+      authSub
+      firstName
+      lastName
+      fullName
+    }
+    tags {
+      id
+      name
+    }
+    comments {
+      id
+      author
+      comment
+      createdAt
+    }
+  }
+}

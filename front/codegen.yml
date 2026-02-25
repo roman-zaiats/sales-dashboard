@@ -1,0 +1,23 @@
+overwrite: true
+schema: "../back/schema.graphql"
+documents:
+  - "src/**/*.graphql"
+generates:
+  src/generated/graphql.tsx:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-react-apollo
+    config:
+      extractAllFieldsToTypes: true
+      withHooks: true
+      withHOC: false
+      withComponent: false
+      skipTypename: false
+      enumsAsTypes: true
+      maybeValue: T | null | undefined
+      avoidOptionals:
+        field: false
+        inputValue: false
+        object: false
+        defaultValue: false
