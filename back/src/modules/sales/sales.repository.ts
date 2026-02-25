@@ -1,20 +1,20 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Pool } from 'pg';
 
-import { salesSchemaSql } from './sales-schema';
 import {
+  PaginationInput,
   Sale,
+  SaleComment,
+  SaleFilterInput,
   SaleListPayload,
   SaleSortInput,
-  SaleFilterInput,
-  PaginationInput,
+  SaleSourceRecord,
   SaleStatus,
   SaleTag,
-  SaleComment,
   UserRecord,
-  SaleSourceRecord,
 } from './sales.types';
 import { SALES_PG_POOL } from './sales-db.module';
+import { salesSchemaSql } from './sales-schema';
 
 @Injectable()
 export class SalesRepository {
@@ -41,6 +41,7 @@ export class SalesRepository {
 
     const addWhereParam = (value: string | number | boolean | null | string[]) => {
       whereParams.push(value);
+
       return `$${whereParams.length}`;
     };
 
@@ -96,10 +97,7 @@ export class SalesRepository {
       this.loadUsersForSaleOwners(saleIds),
     ]);
 
-    const totalResult = await this.pool.query(
-      `SELECT COUNT(*)::int AS total FROM sales ${where}`,
-      whereParams,
-    );
+    const totalResult = await this.pool.query(`SELECT COUNT(*)::int AS total FROM sales ${where}`, whereParams);
 
     const total = totalResult.rows[0]?.total;
 
@@ -121,7 +119,7 @@ export class SalesRepository {
     sort?: SaleSortInput,
     pagination: PaginationInput = {},
   ): Promise<SaleListPayload> {
-    return this.listSales(
+    return await this.listSales(
       {
         ...filter,
         has_delay: true,
@@ -150,6 +148,7 @@ export class SalesRepository {
     }
 
     const updated = await this.findById(id);
+
     if (!updated) {
       throw new Error(`Sale ${id} was updated but could not be reloaded`);
     }
@@ -173,6 +172,7 @@ export class SalesRepository {
     }
 
     const updated = await this.findById(id);
+
     if (!updated) {
       throw new Error(`Sale ${id} was updated but could not be reloaded`);
     }
@@ -196,6 +196,7 @@ export class SalesRepository {
     }
 
     const updated = await this.findById(id);
+
     if (!updated) {
       throw new Error(`Sale ${id} was updated but could not be reloaded`);
     }
@@ -220,6 +221,7 @@ export class SalesRepository {
     }
 
     const updated = await this.findById(id);
+
     if (!updated) {
       throw new Error(`Sale ${id} was updated but could not be reloaded`);
     }
@@ -230,6 +232,7 @@ export class SalesRepository {
   async addSaleTag(id: string, tagName: string): Promise<Sale> {
     await this.initializeSchema();
     const normalizedTagName = tagName.trim();
+
     if (!normalizedTagName) {
       throw new Error('tag_name cannot be empty');
     }
@@ -275,6 +278,7 @@ export class SalesRepository {
     }
 
     const updated = await this.findById(id);
+
     if (!updated) {
       throw new Error(`Sale ${id} was updated but could not be reloaded`);
     }
@@ -285,6 +289,7 @@ export class SalesRepository {
   async removeSaleTag(id: string, tagName: string): Promise<Sale> {
     await this.initializeSchema();
     const normalizedTagName = tagName.trim();
+
     if (!normalizedTagName) {
       throw new Error('tag_name cannot be empty');
     }
@@ -298,9 +303,11 @@ export class SalesRepository {
 
     if (tagResponse.rowCount === 0) {
       const updated = await this.findById(id);
+
       if (!updated) {
         throw new Error(`Sale not found: ${id}`);
       }
+
       return updated;
     }
 
@@ -324,6 +331,7 @@ export class SalesRepository {
     }
 
     const updated = await this.findById(id);
+
     if (!updated) {
       throw new Error(`Sale ${id} was updated but could not be reloaded`);
     }
@@ -494,9 +502,7 @@ export class SalesRepository {
   }> {
     await this.initializeSchema();
 
-    const uniqueRecords = Array.from(
-      new Map(records.map(record => [record.externalSaleId, record])).values(),
-    );
+    const uniqueRecords = Array.from(new Map(records.map(record => [record.externalSaleId, record])).values());
 
     if (uniqueRecords.length === 0) {
       return { insertedCount: 0, updatedCount: 0, processedCount: 0 };
@@ -512,9 +518,7 @@ export class SalesRepository {
       [externalIds],
     );
 
-    const existingSet = new Set(
-      (existingResponse.rows ?? []).map(row => String(row.external_sale_id)),
-    );
+    const existingSet = new Set((existingResponse.rows ?? []).map(row => String(row.external_sale_id)));
 
     const upsertSql = `
       INSERT INTO sales (
@@ -570,10 +574,9 @@ export class SalesRepository {
       return 0;
     }
 
-    const response = await this.pool.query(
-      `SELECT COUNT(*)::int AS total FROM sales WHERE id = ANY($1::uuid[])`,
-      [ids],
-    );
+    const response = await this.pool.query(`SELECT COUNT(*)::int AS total FROM sales WHERE id = ANY($1::uuid[])`, [
+      ids,
+    ]);
 
     return Number(response.rows[0]?.total ?? 0);
   }
@@ -592,6 +595,7 @@ export class SalesRepository {
 
   private normalizeSortField(rawField: string): string {
     const allowed = new Set(['created_at', 'updated_at', 'delivery_delay_at', 'status']);
+
     return allowed.has(rawField) ? rawField : 'updated_at';
   }
 
@@ -619,10 +623,12 @@ export class SalesRepository {
     );
 
     const tagsBySale = new Map<string, SaleTag[]>();
+
     for (const row of response.rows) {
       const saleId = row.sale_id as string;
       const existing = tagsBySale.get(saleId) ?? [];
       const name = row.name as string | null;
+
       if (!name) {
         continue;
       }
@@ -659,6 +665,7 @@ export class SalesRepository {
     );
 
     const commentsBySale = new Map<string, SaleComment[]>();
+
     for (const row of response.rows) {
       const saleId = row.sale_id as string;
       const list = commentsBySale.get(saleId) ?? [];
@@ -695,6 +702,7 @@ export class SalesRepository {
     );
 
     const map = new Map<string, UserRecord>();
+
     for (const row of response.rows) {
       const firstName = row.first_name as string | null;
       const lastName = row.last_name as string | null;

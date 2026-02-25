@@ -4,9 +4,7 @@ export const parseEnv = <T extends z.ZodTypeAny>(schema: T): z.infer<T> => {
   const result = schema.safeParse(process.env);
 
   if (!result.success) {
-    const details = result.error.issues
-      .map(issue => `${issue.path.join('.')}: ${issue.message}`)
-      .join('; ');
+    const details = result.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join('; ');
     throw new Error(`Invalid environment configuration: ${details}`);
   }
 

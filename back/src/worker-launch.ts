@@ -3,10 +3,11 @@ import { loadEnvVars } from '../loadEnvVars';
 
 loadEnvVars();
 
-import { SalesIngestionService } from './modules/sales/sales-ingestion.service';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+
 import { env } from './app.env';
+import { AppModule } from './app.module';
+import { SalesIngestionService } from './modules/sales/sales-ingestion.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });

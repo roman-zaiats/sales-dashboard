@@ -6,3 +6,5 @@ coverage/
 .env
 .env.*
 back/src/generated/**
+back/drizzle.config.ts
+back/seed-sales-fixtures.cjs

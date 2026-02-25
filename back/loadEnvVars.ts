@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+
 import { config as dotenvxConfig } from '@dotenvx/dotenvx';
 
 export const loadEnvVars = () => {

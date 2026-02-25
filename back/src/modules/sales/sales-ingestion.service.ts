@@ -3,8 +3,8 @@ import * as mongoose from 'mongoose';
 import { Types } from 'mongoose';
 
 import { env } from '../../app.env';
-import { SaleStatus, SaleSourceRecord } from './sales.types';
 import { SalesRepository } from './sales.repository';
+import { SaleSourceRecord, SaleStatus } from './sales.types';
 
 type MongoSourceRecord = Record<string, unknown>;
 
@@ -46,10 +46,12 @@ export class SalesIngestionService implements OnApplicationShutdown {
 
   async stop(): Promise<void> {
     this.isShuttingDown = true;
+
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
     }
+
     if (mongoose.connection.readyState > 0) {
       await mongoose.disconnect();
       this.mongoCollection = null;
@@ -63,6 +65,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
   private async run(): Promise<void> {
     if (this.isRunning) {
       this.logger.warn('Ingestion run skipped because a previous run is still in progress');
+
       return;
     }
 
@@ -81,11 +84,13 @@ export class SalesIngestionService implements OnApplicationShutdown {
       });
 
       const upsertResult = await this.salesRepository.upsertSalesFromSource(records, sourceSyncState);
+
       if (latestCursor) {
         cursorValueToPersist = this.serializeIngestionCursor(latestCursor);
       }
 
       await this.salesRepository.finishIngestionRunSuccess(runId, upsertResult);
+
       if (cursorValueToPersist) {
         await this.salesRepository.setIngestionCursor(env.SYNC_SOURCE_CURSOR_KEY, cursorValueToPersist);
       }
@@ -95,6 +100,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
       );
     } catch (error) {
       const message = this.normalizeErrorMessage(error);
+
       if (runId) {
         try {
           await this.salesRepository.finishIngestionRunFailure(runId, message);
@@ -141,6 +147,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
     }
 
     const mongoUri = env.MONGODB_URI || env.SECRET_MONGODB_URI;
+
     if (!mongoUri) {
       throw new Error('Missing MONGODB_URI or SECRET_MONGODB_URI for ingestion worker');
     }
@@ -150,11 +157,13 @@ export class SalesIngestionService implements OnApplicationShutdown {
     });
 
     const db = mongoose.connection.db;
+
     if (!db) {
       throw new Error('MongoDB database reference unavailable after connect');
     }
 
     this.mongoCollection = db.collection(env.MONGO_INGESTION_COLLECTION) as MongoCollection;
+
     return this.mongoCollection;
   }
 
@@ -170,6 +179,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
       if (cursor.externalSaleId) {
         query._id = { $gt: this.coerceCursorObjectId(cursor.externalSaleId) };
       }
+
       return query;
     }
 
@@ -230,6 +240,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
     });
 
     const newest = ordered[ordered.length - 1];
+
     if (!newest) {
       return null;
     }
@@ -247,12 +258,14 @@ export class SalesIngestionService implements OnApplicationShutdown {
 
     try {
       const parsed = JSON.parse(rawValue) as IngestionCursorState;
+
       return {
         sourceCreatedAt: parsed.sourceCreatedAt ?? null,
         externalSaleId: parsed.externalSaleId ?? null,
       };
     } catch {
       const parsedDate = this.parseDateString(rawValue);
+
       if (!parsedDate) {
         return null;
       }
@@ -278,6 +291,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
       this.normalizeExternalSaleId(record.listingId) ??
       this.normalizeExternalSaleId(record.external_sale_id) ??
       this.normalizeExternalSaleId(record.externalSaleId);
+
     if (!externalSaleId) {
       return null;
     }
@@ -306,11 +320,13 @@ export class SalesIngestionService implements OnApplicationShutdown {
   private normalizeText(value: unknown): string | null {
     if (typeof value === 'string') {
       const normalized = value.trim();
+
       return normalized.length > 0 ? normalized : null;
     }
 
     if (typeof value === 'number') {
       const stringified = String(value);
+
       return stringified.length > 0 ? stringified : null;
     }
 
@@ -324,6 +340,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
 
     if (typeof value === 'string') {
       const parsed = Number.parseInt(value, 10);
+
       return Number.isFinite(parsed) ? parsed : null;
     }
 
@@ -337,6 +354,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
 
     if (typeof value === 'string') {
       const parsed = Number(value);
+
       return Number.isFinite(parsed) ? parsed : null;
     }
 
@@ -353,12 +371,15 @@ export class SalesIngestionService implements OnApplicationShutdown {
     if (normalized === SaleStatus.RECEIVED) {
       return SaleStatus.RECEIVED;
     }
+
     if (normalized === SaleStatus.COMPLETED || normalized === 'SOLD') {
       return SaleStatus.COMPLETED;
     }
+
     if (normalized === SaleStatus.DELAYED) {
       return SaleStatus.DELAYED;
     }
+
     if (normalized === SaleStatus.PROBLEM) {
       return SaleStatus.PROBLEM;
     }
@@ -369,6 +390,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
   private normalizeExternalSaleId(value: unknown): string | null {
     if (typeof value === 'string') {
       const normalized = value.trim();
+
       return normalized.length > 0 ? normalized : null;
     }
 
@@ -379,6 +401,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
 
       if ('toString' in value && typeof value.toString === 'function') {
         const textual = value.toString();
+
         if (textual && textual !== '[object Object]') {
           return textual;
         }
@@ -395,6 +418,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
 
     if (typeof value === 'string') {
       const parsed = new Date(value);
+
       return Number.isNaN(parsed.getTime()) ? null : parsed;
     }
 
@@ -404,16 +428,27 @@ export class SalesIngestionService implements OnApplicationShutdown {
 
     if (value && typeof value === 'object' && '$date' in value) {
       const dateValue = value.$date;
+
       if (typeof dateValue === 'string') {
         const parsed = new Date(dateValue);
+
         return Number.isNaN(parsed.getTime()) ? null : parsed;
       }
+
       if (typeof dateValue === 'number') {
         const parsed = new Date(dateValue);
+
         return Number.isNaN(parsed.getTime()) ? null : parsed;
       }
-      if (dateValue && typeof dateValue === 'object' && 'toString' in dateValue && typeof dateValue.toString === 'function') {
+
+      if (
+        dateValue &&
+        typeof dateValue === 'object' &&
+        'toString' in dateValue &&
+        typeof dateValue.toString === 'function'
+      ) {
         const parsed = new Date(dateValue.toString());
+
         return Number.isNaN(parsed.getTime()) ? null : parsed;
       }
     }

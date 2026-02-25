@@ -1,4 +1,4 @@
-import { Module, Global, type Provider } from '@nestjs/common';
+import { Global, Module, type Provider } from '@nestjs/common';
 import { Pool } from 'pg';
 
 import { env } from '../../app.env';
@@ -13,10 +13,7 @@ const salesDbProvider: Provider = {
       try {
         const parsed = new URL(connectionString);
 
-        return (
-          env.SALES_DATABASE_SSL ||
-          parsed.searchParams.get('sslmode')?.toLowerCase() === 'require'
-        );
+        return env.SALES_DATABASE_SSL || parsed.searchParams.get('sslmode')?.toLowerCase() === 'require';
       } catch {
         return env.SALES_DATABASE_SSL;
       }
