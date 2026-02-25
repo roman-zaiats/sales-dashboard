@@ -8,6 +8,7 @@ import type {
   SaleFilterInput,
   SaleListPayload,
   SaleSortInput,
+  SaleSourceRecord,
   SaleStatus,
 } from './sales.types';
 
@@ -54,59 +55,21 @@ export class SalesService {
   }
 
   async updateSaleStatus(id: string, status: SaleStatus, expectedUpdatedAt?: string | null): Promise<Sale> {
-    const sale = await this.salesRepository.findById(id);
-
-    if (!sale) {
-      throw new Error(`Sale not found: ${id}`);
-    }
-
-    this.assertNotStale(sale.updatedAt, expectedUpdatedAt);
-
-    return await this.salesRepository.updateStatus(id, status);
+    return await this.mutateWithExpectedConcurrency(id, expectedUpdatedAt, async () => {
+      return await this.salesRepository.updateStatus(id, status, expectedUpdatedAt);
+    });
   }
 
   async updateSaleDelay(id: string, deliveryDelayAt: string | null, expectedUpdatedAt?: string | null): Promise<Sale> {
-    const sale = await this.salesRepository.findById(id);
-
-    if (!sale) {
-      throw new Error(`Sale not found: ${id}`);
-    }
-
-    this.assertNotStale(sale.updatedAt, expectedUpdatedAt);
-
-    return await this.salesRepository.updateDelay(id, deliveryDelayAt);
+    return await this.mutateWithExpectedConcurrency(id, expectedUpdatedAt, async () => {
+      return await this.salesRepository.updateDelay(id, deliveryDelayAt, expectedUpdatedAt);
+    });
   }
 
   async updateSaleProblem(id: string, problemReason: string | null, expectedUpdatedAt?: string | null): Promise<Sale> {
-    const sale = await this.salesRepository.findById(id);
-
-    if (!sale) {
-      throw new Error(`Sale not found: ${id}`);
-    }
-
-    this.assertNotStale(sale.updatedAt, expectedUpdatedAt);
-
-    return await this.salesRepository.updateProblem(id, problemReason);
-  }
-
-  async addSaleTag(id: string, tagName: string): Promise<Sale> {
-    const sale = await this.salesRepository.findById(id);
-
-    if (!sale) {
-      throw new Error(`Sale not found: ${id}`);
-    }
-
-    return await this.salesRepository.addSaleTag(id, tagName);
-  }
-
-  async removeSaleTag(id: string, tagName: string): Promise<Sale> {
-    const sale = await this.salesRepository.findById(id);
-
-    if (!sale) {
-      throw new Error(`Sale not found: ${id}`);
-    }
-
-    return await this.salesRepository.removeSaleTag(id, tagName);
+    return await this.mutateWithExpectedConcurrency(id, expectedUpdatedAt, async () => {
+      return await this.salesRepository.updateProblem(id, problemReason, expectedUpdatedAt);
+    });
   }
 
   async setSaleFilledBy(id: string, userId: string): Promise<Sale> {
@@ -116,7 +79,45 @@ export class SalesService {
       throw new Error(`Sale not found: ${id}`);
     }
 
-    return await this.salesRepository.setSaleFilledBy(id, userId);
+    const updated = await this.salesRepository.setSaleFilledBy(id, userId);
+
+    if (!updated) {
+      throw new Error(`Sale ${id} was updated but could not be reloaded`);
+    }
+
+    return updated;
+  }
+
+  async addSaleTag(id: string, tagName: string): Promise<Sale> {
+    const sale = await this.salesRepository.findById(id);
+
+    if (!sale) {
+      throw new Error(`Sale not found: ${id}`);
+    }
+
+    const updated = await this.salesRepository.addSaleTag(id, tagName);
+
+    if (!updated) {
+      throw new Error(`Sale ${id} was updated but could not be reloaded`);
+    }
+
+    return updated;
+  }
+
+  async removeSaleTag(id: string, tagName: string): Promise<Sale> {
+    const sale = await this.salesRepository.findById(id);
+
+    if (!sale) {
+      throw new Error(`Sale not found: ${id}`);
+    }
+
+    const updated = await this.salesRepository.removeSaleTag(id, tagName);
+
+    if (!updated) {
+      throw new Error(`Sale ${id} was updated but could not be reloaded`);
+    }
+
+    return updated;
   }
 
   async addSaleComment(id: string, comment: string): Promise<SaleComment> {
@@ -126,17 +127,73 @@ export class SalesService {
       throw new Error(`Sale not found: ${id}`);
     }
 
-    const trimmedComment = comment.trim();
-
-    if (!trimmedComment) {
-      throw new Error('Comment cannot be empty');
-    }
-
-    return await this.salesRepository.addSaleComment(id, trimmedComment);
+    return await this.salesRepository.addSaleComment(id, comment);
   }
 
   async listUsersForAssignment() {
     return await this.salesRepository.listUsersForAssignment();
+  }
+
+  async startIngestionRun(): Promise<string> {
+    return await this.salesRepository.startIngestionRun();
+  }
+
+  async finishIngestionRunSuccess(
+    runId: string,
+    payload: {
+      processedCount: number;
+      insertedCount: number;
+      updatedCount: number;
+    },
+  ): Promise<void> {
+    await this.salesRepository.finishIngestionRunSuccess(runId, payload);
+  }
+
+  async finishIngestionRunFailure(runId: string, errorMessage: string): Promise<void> {
+    await this.salesRepository.finishIngestionRunFailure(runId, errorMessage);
+  }
+
+  async getIngestionCursor(key: string): Promise<string | null> {
+    return await this.salesRepository.getIngestionCursor(key);
+  }
+
+  async setIngestionCursor(key: string, value: string): Promise<void> {
+    await this.salesRepository.setIngestionCursor(key, value);
+  }
+
+  async upsertSalesFromSource(
+    records: SaleSourceRecord[],
+    sourceSyncState: string,
+  ): Promise<{
+    insertedCount: number;
+    updatedCount: number;
+    processedCount: number;
+  }> {
+    this.logger.debug(`Persisting ${records.length} source sales`);
+
+    return await this.salesRepository.upsertSalesFromSource(records, sourceSyncState);
+  }
+
+  private async mutateWithExpectedConcurrency(
+    id: string,
+    expectedUpdatedAt: string | null | undefined,
+    mutate: () => Promise<Sale | null>,
+  ): Promise<Sale> {
+    const sale = await this.salesRepository.findById(id);
+
+    if (!sale) {
+      throw new Error(`Sale not found: ${id}`);
+    }
+
+    this.assertNotStale(sale.updatedAt, expectedUpdatedAt);
+
+    const updated = await mutate();
+
+    if (!updated) {
+      throw new Error(SALE_STALE_UPDATE_WARNING);
+    }
+
+    return updated;
   }
 
   private assertNotStale(currentUpdatedAt: string, expectedUpdatedAt?: string | null): void {

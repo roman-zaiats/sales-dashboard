@@ -11,7 +11,7 @@
 
 ## Phase Quality Guardrail
 
-- [X] PT-GATE Execute `./scripts/phase-gate.sh` at the end of each phase before marking phase tasks as completed.
+- [X] PT-GATE Execute `scripts/phase-gate.sh` at the end of each phase before marking phase tasks as completed.
 
 ## Phase 1: Setup (Shared Infrastructure)
 
@@ -26,16 +26,16 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T007 Add typed Drizzle schema base file `back/src/modules/sales/db/schema.ts` for sales, tags, users, comments, ingestion metadata tables
-- [ ] T008 [P] Create Drizzle client bootstrap `back/src/modules/sales/db/client.ts` and PostgreSQL connection helper in `back/src/modules/sales/db/connection.ts`
-- [ ] T009 [P] Add migration entrypoint and migration scripts in `back/package.json` and `back/migrations`
-- [ ] T010 Add repository abstraction for Drizzle operations in `back/src/modules/sales/sales.repository.ts`
-- [ ] T011 [P] Update `back/src/modules/sales/sales.types.ts` to include `updatedAt`/`expectedUpdatedAt` typed flow for stale-checks
-- [ ] T012 [P] Replace raw query paths in `back/src/modules/sales/sales-ingestion.service.ts` with shared Drizzle repository calls
-- [ ] T013 [P] Update `back/src/shared/env` and `back/src/app.env.ts` for unified runtime defaults and Drizzle-required settings
-- [ ] T014 Ensure `back/schema.graphql` remains authoritative by adding missing types/comments for Drizzle-backed metadata and required fields
-- [ ] T015 [P] Normalize startup path in `back/src/main-launch.ts` for single app launch sequence
-- [ ] T016 Remove/replace legacy dual-launch mode entrypoints:
+- [X] T007 Add typed Drizzle schema base file `back/src/modules/sales/db/schema.ts` for sales, tags, users, comments, ingestion metadata tables
+- [X] T008 [P] Create Drizzle client bootstrap `back/src/modules/sales/db/client.ts` and PostgreSQL connection helper in `back/src/modules/sales/db/connection.ts`
+- [X] T009 [P] Add migration entrypoint and migration scripts in `back/package.json` and `back/migrations`
+- [X] T010 Add repository abstraction for Drizzle operations in `back/src/modules/sales/sales.repository.ts`
+- [X] T011 [P] Update `back/src/modules/sales/sales.types.ts` to include `updatedAt`/`expectedUpdatedAt` typed flow for stale-checks
+- [X] T012 [P] Replace raw query paths in `back/src/modules/sales/sales-ingestion.service.ts` with shared Drizzle repository calls
+- [X] T013 [P] Update `back/src/shared/env` and `back/src/app.env.ts` for unified runtime defaults and Drizzle-required settings
+- [X] T014 Ensure `back/schema.graphql` remains authoritative by adding missing types/comments for Drizzle-backed metadata and required fields
+- [X] T015 [P] Normalize startup path in `back/src/main-launch.ts` for single app launch sequence
+- [X] T016 Remove/replace legacy dual-launch mode entrypoints:
   - `back/src/leader-launch.ts`
   - `back/src/worker-launch.ts`
 
@@ -45,11 +45,11 @@
 
 **Independent Test**: Start application in regular mode and verify sales, board, delayed, and detail operations work without leader/worker toggles.
 
-- [ ] T017 [US1] Update Nest bootstrap registration in `back/src/app.module.ts` to remove dual-mode split dependencies
-- [ ] T018 [US1] Wire ingestion scheduling/services into normal module loading in `back/src/main-launch.ts`
-- [ ] T019 [US1] Update `back/src/modules/sales/sales-ingestion.service.ts` to run from unified runtime
-- [ ] T020 [P] [US1] Merge operational-edit guard logic into ingestion write path in `back/src/modules/sales/sales.service.ts`
-- [ ] T021 [US1] Remove leader/worker environment branching in `back/package.json` scripts and add single `start` command semantics
+- [X] T017 [US1] Update Nest bootstrap registration in `back/src/app.module.ts` to remove dual-mode split dependencies
+- [X] T018 [US1] Wire ingestion scheduling/services into normal module loading in `back/src/main-launch.ts`
+- [X] T019 [US1] Update `back/src/modules/sales/sales-ingestion.service.ts` to run from unified runtime
+- [X] T020 [P] [US1] Merge operational-edit guard logic into ingestion write path in `back/src/modules/sales/sales.service.ts`
+- [X] T021 [US1] Remove leader/worker environment branching in `back/package.json` scripts and add single `start` command semantics
 - [ ] T022 [US1] Update docs of runtime behavior in `specs/002-sales-dashboard-refinement/quickstart.md`
 
 ## Phase 4: User Story 2 - Drizzle ORM Persistence Migration (Priority: P2)
@@ -58,14 +58,14 @@
 
 **Independent Test**: Execute representative queries/mutations and verify all requested flows hit Drizzle repositories.
 
-- [ ] T023 [P] [US2] Migrate sale read paths in `back/src/modules/sales/sales.repository.ts` to Drizzle query builders
-- [ ] T024 [US2] Migrate list/detail GraphQL resolvers in `back/src/modules/sales/sales.resolver.ts` to repository-backed calls
-- [ ] T025 [P] [US2] Migrate `updateSaleStatus`, `updateSaleDelay`, `updateSaleProblem`, `setSaleFilledBy` mutations to Drizzle-backed write methods in `back/src/modules/sales/sales.service.ts`
-- [ ] T026 [US2] Migrate tag persistence helpers (`addSaleTag`, `removeSaleTag`) and comments path to Drizzle in `back/src/modules/sales/sales.repository.ts`
-- [ ] T027 [P] [US2] Migrate user lookup and assignment data reads in `back/src/modules/sales/sales.service.ts`
-- [ ] T028 [P] [US2] Migrate ingestion metadata persistence in `back/src/modules/sales/sales-ingestion.service.ts`
-- [ ] T029 [US2] Add transaction boundaries and version-safe merge logic in `back/src/modules/sales/sales.service.ts`
-- [ ] T030 [P] [US2] Add migration verification queries and seed sanity checks in `back/src/modules/sales/sales-db.module.ts`
+- [X] T023 [P] [US2] Migrate sale read paths in `back/src/modules/sales/sales.repository.ts` to Drizzle query builders
+- [X] T024 [US2] Migrate list/detail GraphQL resolvers in `back/src/modules/sales/sales.resolver.ts` to repository-backed calls
+- [X] T025 [P] [US2] Migrate `updateSaleStatus`, `updateSaleDelay`, `updateSaleProblem`, `setSaleFilledBy` mutations to Drizzle-backed write methods in `back/src/modules/sales/sales.service.ts`
+- [X] T026 [US2] Migrate tag persistence helpers (`addSaleTag`, `removeSaleTag`) and comments path to Drizzle in `back/src/modules/sales/sales.repository.ts`
+- [X] T027 [P] [US2] Migrate user lookup and assignment data reads in `back/src/modules/sales/sales.service.ts`
+- [X] T028 [P] [US2] Migrate ingestion metadata persistence in `back/src/modules/sales/sales-ingestion.service.ts`
+- [X] T029 [US2] Add transaction boundaries and version-safe merge logic in `back/src/modules/sales/sales.service.ts`
+- [X] T030 [P] [US2] Add migration verification queries and seed sanity checks in `back/src/modules/sales/sales-db.module.ts`
 
 ## Phase 5: User Story 3 - Draggable Board Status Updates + Stale Protection (Priority: P3)
 

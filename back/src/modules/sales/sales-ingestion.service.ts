@@ -3,7 +3,7 @@ import * as mongoose from 'mongoose';
 import { Types } from 'mongoose';
 
 import { env } from '../../app.env';
-import { SalesRepository } from './sales.repository';
+import { SalesService } from './sales.service';
 import { SaleSourceRecord, SaleStatus } from './sales.types';
 
 type MongoSourceRecord = Record<string, unknown>;
@@ -31,7 +31,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
   private timer: NodeJS.Timeout | null = null;
   private mongoCollection: MongoCollection | null = null;
 
-  constructor(private readonly salesRepository: SalesRepository) {}
+  constructor(private readonly salesService: SalesService) {}
 
   async start(): Promise<void> {
     if (this.timer) {
@@ -74,7 +74,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
     let cursorValueToPersist: string | null = null;
 
     try {
-      runId = await this.salesRepository.startIngestionRun();
+      runId = await this.salesService.startIngestionRun();
       const records = await this.fetchBatchFromMongo();
       const latestCursor = this.extractNewestCursorFromRecords(records);
       const sourceSyncState = JSON.stringify({
@@ -83,16 +83,16 @@ export class SalesIngestionService implements OnApplicationShutdown {
         at: new Date().toISOString(),
       });
 
-      const upsertResult = await this.salesRepository.upsertSalesFromSource(records, sourceSyncState);
+      const upsertResult = await this.salesService.upsertSalesFromSource(records, sourceSyncState);
 
       if (latestCursor) {
         cursorValueToPersist = this.serializeIngestionCursor(latestCursor);
       }
 
-      await this.salesRepository.finishIngestionRunSuccess(runId, upsertResult);
+      await this.salesService.finishIngestionRunSuccess(runId, upsertResult);
 
       if (cursorValueToPersist) {
-        await this.salesRepository.setIngestionCursor(env.SYNC_SOURCE_CURSOR_KEY, cursorValueToPersist);
+        await this.salesService.setIngestionCursor(env.SYNC_SOURCE_CURSOR_KEY, cursorValueToPersist);
       }
 
       this.logger.debug(
@@ -103,7 +103,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
 
       if (runId) {
         try {
-          await this.salesRepository.finishIngestionRunFailure(runId, message);
+          await this.salesService.finishIngestionRunFailure(runId, message);
         } catch (finalizationError) {
           this.logger.error(
             `Ingestion failure could not be persisted: ${this.normalizeErrorMessage(finalizationError)}`,
@@ -123,7 +123,7 @@ export class SalesIngestionService implements OnApplicationShutdown {
     }
 
     const collection = await this.getMongoCollection();
-    const cursorRaw = await this.salesRepository.getIngestionCursor(env.SYNC_SOURCE_CURSOR_KEY);
+    const cursorRaw = await this.salesService.getIngestionCursor(env.SYNC_SOURCE_CURSOR_KEY);
     const parsedCursor = this.parseIngestionCursor(cursorRaw);
     const query = this.buildCursorQuery(parsedCursor);
 

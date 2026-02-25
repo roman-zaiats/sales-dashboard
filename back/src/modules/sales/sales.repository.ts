@@ -1,6 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Pool } from 'pg';
+import { randomUUID } from 'node:crypto';
 
+import { Inject, Injectable } from '@nestjs/common';
+import { and, asc, count, desc, eq, inArray, lt, type SQL, sql } from 'drizzle-orm';
+
+import { type SalesDatabaseContext } from './db/client';
+import { ingestionState, saleComments, saleIngestionRuns, sales, saleTags, tags, users } from './db/schema';
 import {
   PaginationInput,
   Sale,
@@ -13,12 +17,20 @@ import {
   SaleTag,
   UserRecord,
 } from './sales.types';
-import { SALES_PG_POOL } from './sales-db.module';
+import { SALES_DB_CONTEXT } from './sales-db.module';
 import { salesSchemaSql } from './sales-schema';
 
 @Injectable()
 export class SalesRepository {
-  constructor(@Inject(SALES_PG_POOL) private readonly pool: Pool) {}
+  constructor(@Inject(SALES_DB_CONTEXT) private readonly database: SalesDatabaseContext) {}
+
+  private get pool() {
+    return this.database.pool;
+  }
+
+  private get db() {
+    return this.database.db;
+  }
 
   async initializeSchema(): Promise<void> {
     await this.pool.query(salesSchemaSql);
@@ -35,82 +47,57 @@ export class SalesRepository {
     const offset = Math.max(0, pagination.skip ?? 0);
     const sortBy = this.normalizeSortField(sort?.field ?? 'updated_at');
     const order = sort?.direction === 'ASC' ? 'ASC' : 'DESC';
+    const sortColumn = this.resolveSortColumn(sortBy);
+    const where = this.buildWhereClause(filter);
 
-    const whereClauses: string[] = [];
-    const whereParams: Array<string | number | null | boolean | string[]> = [];
+    const [rows, totalRow] = await Promise.all([
+      this.db
+        .select({
+          id: sales.id,
+          externalSaleId: sales.externalSaleId,
+          listingId: sales.listingId,
+          eventId: sales.eventId,
+          quantity: sales.quantity,
+          price: sales.price,
+          currency: sales.currency,
+          buyerEmail: sales.buyerEmail,
+          status: sales.status,
+          deliveryDelayAt: sales.deliveryDelayAt,
+          problemReason: sales.problemReason,
+          filledByUserId: sales.filledByUserId,
+          createdAt: sales.createdAt,
+          updatedAt: sales.updatedAt,
+          sourceCreatedAt: sales.sourceCreatedAt,
+          sourceUpdatedAt: sales.sourceUpdatedAt,
+          sourcePayload: sales.sourcePayload,
+        })
+        .from(sales)
+        .where(where)
+        .orderBy(order === 'ASC' ? asc(sortColumn) : desc(sortColumn), asc(sales.createdAt), asc(sales.id))
+        .limit(limit)
+        .offset(offset),
+      this.db.select({ total: count() }).from(sales).where(where),
+    ]);
 
-    const addWhereParam = (value: string | number | boolean | null | string[]) => {
-      whereParams.push(value);
-
-      return `$${whereParams.length}`;
-    };
-
-    if (filter.search) {
-      const searchParam = addWhereParam(`%${filter.search}%`);
-      whereClauses.push(
-        `(listing_id ILIKE ${searchParam} OR event_id ILIKE ${searchParam} OR buyer_email ILIKE ${searchParam} OR external_sale_id ILIKE ${searchParam})`,
-      );
-    }
-
-    if (filter.status) {
-      whereClauses.push(`status = ${addWhereParam(filter.status)}`);
-    }
-
-    if (filter.tagIds?.length) {
-      whereClauses.push(`id IN (
-        SELECT st.sale_id
-        FROM sale_tags st
-        WHERE st.tag_id = ANY(${addWhereParam(filter.tagIds)}::uuid[])
-      )`);
-    }
-
-    if (filter.has_delay === true) {
-      whereClauses.push('delivery_delay_at IS NOT NULL');
-    }
-
-    if (filter.has_delay === false) {
-      whereClauses.push('delivery_delay_at IS NULL');
-    }
-
-    if (filter.overdue_only === true) {
-      whereClauses.push('delivery_delay_at < NOW()');
-    }
-
-    const where = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : '';
-    const query = `
-      SELECT
-        id, external_sale_id, listing_id, event_id, quantity, price, currency, buyer_email,
-        status, delivery_delay_at, problem_reason,
-        filled_by_user_id, created_at, updated_at, source_created_at, source_updated_at, source_payload
-      FROM sales
-      ${where}
-      ORDER BY ${this.buildOrderClause(sortBy, order)}
-      LIMIT $${whereParams.length + 1} OFFSET $${whereParams.length + 2}
-    `;
-
-    const queryResult = await this.pool.query(query, [...whereParams, limit, offset]);
-
-    const saleIds = queryResult.rows.map(row => String(row.id));
+    const saleIds = rows.map(row => row.id);
     const [tagsBySaleId, commentsBySaleId, usersBySaleId] = await Promise.all([
       this.loadTagsForSales(saleIds),
       this.loadCommentsForSales(saleIds),
       this.loadUsersForSaleOwners(saleIds),
     ]);
 
-    const totalResult = await this.pool.query(`SELECT COUNT(*)::int AS total FROM sales ${where}`, whereParams);
-
-    const total = totalResult.rows[0]?.total;
+    const total = totalRow[0]?.total ?? 0;
 
     return {
-      items: queryResult.rows.map(row =>
+      items: rows.map(row =>
         this.mapRow(
           row,
-          tagsBySaleId.get(String(row.id)) ?? [],
-          commentsBySaleId.get(String(row.id)) ?? [],
-          usersBySaleId.get(String(row.id)) ?? null,
+          tagsBySaleId.get(row.id) ?? [],
+          commentsBySaleId.get(row.id) ?? [],
+          usersBySaleId.get(row.id) ?? null,
         ),
       ),
-      totalCount: Number(total ?? 0),
+      totalCount: Number(total),
     };
   }
 
@@ -132,104 +119,45 @@ export class SalesRepository {
     );
   }
 
-  async updateStatus(id: string, status: SaleStatus): Promise<Sale> {
-    await this.initializeSchema();
-    const response = await this.pool.query(
-      `
-      UPDATE sales
-      SET status = $1, updated_at = NOW()
-      WHERE id = $2
-      `,
-      [status, id],
-    );
-
-    if (response.rowCount === 0) {
-      throw new Error(`Sale not found: ${id}`);
-    }
-
-    const updated = await this.findById(id);
-
-    if (!updated) {
-      throw new Error(`Sale ${id} was updated but could not be reloaded`);
-    }
-
-    return updated;
+  async updateStatus(id: string, status: SaleStatus, expectedUpdatedAt?: string | null): Promise<Sale | null> {
+    return await this.updateSale(id, { status }, expectedUpdatedAt);
   }
 
-  async updateDelay(id: string, deliveryDelayAt: string | null): Promise<Sale> {
-    await this.initializeSchema();
-    const response = await this.pool.query(
-      `
-      UPDATE sales
-      SET delivery_delay_at = $1, updated_at = NOW()
-      WHERE id = $2
-      `,
-      [deliveryDelayAt, id],
-    );
-
-    if (response.rowCount === 0) {
-      throw new Error(`Sale not found: ${id}`);
-    }
-
-    const updated = await this.findById(id);
-
-    if (!updated) {
-      throw new Error(`Sale ${id} was updated but could not be reloaded`);
-    }
-
-    return updated;
+  async updateDelay(
+    id: string,
+    deliveryDelayAt: string | null,
+    expectedUpdatedAt?: string | null,
+  ): Promise<Sale | null> {
+    return await this.updateSale(id, { deliveryDelayAt }, expectedUpdatedAt);
   }
 
-  async updateProblem(id: string, problemReason: string | null): Promise<Sale> {
-    await this.initializeSchema();
-    const response = await this.pool.query(
-      `
-      UPDATE sales
-      SET problem_reason = $1, updated_at = NOW()
-      WHERE id = $2
-      `,
-      [problemReason, id],
-    );
-
-    if (response.rowCount === 0) {
-      throw new Error(`Sale not found: ${id}`);
-    }
-
-    const updated = await this.findById(id);
-
-    if (!updated) {
-      throw new Error(`Sale ${id} was updated but could not be reloaded`);
-    }
-
-    return updated;
+  async updateProblem(
+    id: string,
+    problemReason: string | null,
+    expectedUpdatedAt?: string | null,
+  ): Promise<Sale | null> {
+    return await this.updateSale(id, { problemReason }, expectedUpdatedAt);
   }
 
-  async setSaleFilledBy(id: string, userId: string): Promise<Sale> {
+  async setSaleFilledBy(id: string, userId: string): Promise<Sale | null> {
     await this.initializeSchema();
 
-    const response = await this.pool.query(
-      `
-      UPDATE sales
-      SET filled_by_user_id = $2, updated_at = NOW()
-      WHERE id = $1
-      `,
-      [id, userId],
-    );
+    const updateResult = await this.db
+      .update(sales)
+      .set({
+        filledByUserId: userId,
+        updatedAt: new Date(),
+      })
+      .where(eq(sales.id, id));
 
-    if (response.rowCount === 0) {
-      throw new Error(`Sale not found: ${id}`);
+    if (updateResult.rowCount === 0) {
+      return null;
     }
 
-    const updated = await this.findById(id);
-
-    if (!updated) {
-      throw new Error(`Sale ${id} was updated but could not be reloaded`);
-    }
-
-    return updated;
+    return await this.findById(id);
   }
 
-  async addSaleTag(id: string, tagName: string): Promise<Sale> {
+  async addSaleTag(id: string, tagName: string): Promise<Sale | null> {
     await this.initializeSchema();
     const normalizedTagName = tagName.trim();
 
@@ -237,166 +165,133 @@ export class SalesRepository {
       throw new Error('tag_name cannot be empty');
     }
 
-    await this.pool.query(
-      `
-      INSERT INTO tags (name)
-      VALUES ($1)
-      ON CONFLICT (name) DO NOTHING
-      `,
-      [normalizedTagName],
-    );
+    await this.db.transaction(async tx => {
+      await tx.insert(tags).values({ name: normalizedTagName }).onConflictDoNothing();
 
-    const tagResponse = await this.pool.query(
-      `
-      SELECT id FROM tags WHERE name = $1
-      `,
-      [normalizedTagName],
-    );
+      const [tagRow] = await tx
+        .select({
+          id: tags.id,
+        })
+        .from(tags)
+        .where(eq(tags.name, normalizedTagName))
+        .limit(1);
 
-    if (tagResponse.rowCount === 0) {
-      throw new Error(`Tag could not be created: ${normalizedTagName}`);
-    }
-
-    const linkResponse = await this.pool.query(
-      `
-      INSERT INTO sale_tags (sale_id, tag_id)
-      SELECT $1, $2
-      ON CONFLICT (sale_id, tag_id) DO NOTHING
-      `,
-      [id, tagResponse.rows[0].id],
-    );
-
-    if (linkResponse.rowCount && linkResponse.rowCount > 0) {
-      await this.pool.query(
-        `
-        UPDATE sales
-        SET updated_at = NOW()
-        WHERE id = $1
-        `,
-        [id],
-      );
-    }
-
-    const updated = await this.findById(id);
-
-    if (!updated) {
-      throw new Error(`Sale ${id} was updated but could not be reloaded`);
-    }
-
-    return updated;
-  }
-
-  async removeSaleTag(id: string, tagName: string): Promise<Sale> {
-    await this.initializeSchema();
-    const normalizedTagName = tagName.trim();
-
-    if (!normalizedTagName) {
-      throw new Error('tag_name cannot be empty');
-    }
-
-    const tagResponse = await this.pool.query(
-      `
-      SELECT id FROM tags WHERE name = $1
-      `,
-      [normalizedTagName],
-    );
-
-    if (tagResponse.rowCount === 0) {
-      const updated = await this.findById(id);
-
-      if (!updated) {
-        throw new Error(`Sale not found: ${id}`);
+      if (!tagRow?.id) {
+        throw new Error(`Tag could not be created: ${normalizedTagName}`);
       }
 
-      return updated;
+      const linked = await tx
+        .insert(saleTags)
+        .values({
+          saleId: id,
+          tagId: tagRow.id,
+        })
+        .onConflictDoNothing()
+        .returning();
+
+      if (linked.length > 0) {
+        await tx.update(sales).set({ updatedAt: new Date() }).where(eq(sales.id, id));
+      }
+    });
+
+    return await this.findById(id);
+  }
+
+  async removeSaleTag(id: string, tagName: string): Promise<Sale | null> {
+    await this.initializeSchema();
+    const normalizedTagName = tagName.trim();
+
+    if (!normalizedTagName) {
+      throw new Error('tag_name cannot be empty');
     }
 
-    const unlinkResponse = await this.pool.query(
-      `
-      DELETE FROM sale_tags
-      WHERE sale_id = $1 AND tag_id = $2
-      `,
-      [id, tagResponse.rows[0].id],
-    );
+    await this.db.transaction(async tx => {
+      const [tagRow] = await tx.select({ id: tags.id }).from(tags).where(eq(tags.name, normalizedTagName)).limit(1);
 
-    if (unlinkResponse.rowCount && unlinkResponse.rowCount > 0) {
-      await this.pool.query(
-        `
-        UPDATE sales
-        SET updated_at = NOW()
-        WHERE id = $1
-        `,
-        [id],
-      );
-    }
+      if (!tagRow?.id) {
+        return;
+      }
 
-    const updated = await this.findById(id);
+      const removed = await tx.delete(saleTags).where(and(eq(saleTags.saleId, id), eq(saleTags.tagId, tagRow.id)));
 
-    if (!updated) {
-      throw new Error(`Sale ${id} was updated but could not be reloaded`);
-    }
+      if (removed.rowCount && removed.rowCount > 0) {
+        await tx.update(sales).set({ updatedAt: new Date() }).where(eq(sales.id, id));
+      }
+    });
 
-    return updated;
+    return await this.findById(id);
   }
 
   async addSaleComment(id: string, comment: string): Promise<SaleComment> {
     await this.initializeSchema();
+    const trimmedComment = comment.trim();
+
+    if (!trimmedComment) {
+      throw new Error('Comment cannot be empty');
+    }
+
     const authorUserId = await this.ensureCommentAuthorUserId();
 
-    const response = await this.pool.query(
-      `
-      INSERT INTO sale_comments (sale_id, author_user_id, comment)
-      VALUES ($1, $2, $3)
-      RETURNING id, comment, created_at
-      `,
-      [id, authorUserId, comment],
-    );
+    const [commentRow] = await this.db.transaction(async tx => {
+      const inserted = await tx
+        .insert(saleComments)
+        .values({
+          saleId: id,
+          authorUserId,
+          comment: trimmedComment,
+        })
+        .returning({
+          id: saleComments.id,
+          comment: saleComments.comment,
+          createdAt: saleComments.createdAt,
+          authorUserId: saleComments.authorUserId,
+        });
 
-    await this.pool.query(
-      `
-      UPDATE sales
-      SET updated_at = NOW()
-      WHERE id = $1
-      `,
-      [id],
-    );
+      await tx.update(sales).set({ updatedAt: new Date() }).where(eq(sales.id, id));
 
-    const authorResponse = await this.pool.query(
-      `
-      SELECT COALESCE(u.first_name || ' ' || u.last_name, 'Unknown') AS author
-      FROM users u
-      WHERE u.id = $1
-      `,
-      [authorUserId],
-    );
+      return inserted;
+    });
+
+    const authorName = await this.getUserFullName(authorUserId);
 
     return {
-      id: response.rows[0].id as string,
-      comment: response.rows[0].comment as string,
-      createdAt: String(response.rows[0].created_at),
-      author: String(authorResponse.rows[0]?.author ?? 'Unknown'),
+      id: commentRow.id,
+      comment: commentRow.comment,
+      createdAt: this.toDateString(commentRow.createdAt),
+      author: authorName,
     };
   }
 
   async findById(id: string): Promise<Sale | null> {
     await this.initializeSchema();
-    const response = await this.pool.query(
-      `
-      SELECT
-        id, external_sale_id, listing_id, event_id, quantity, price, currency, buyer_email,
-        status, delivery_delay_at, problem_reason, filled_by_user_id,
-        created_at, updated_at, source_created_at, source_updated_at, source_payload
-      FROM sales
-      WHERE id = $1
-      `,
-      [id],
-    );
+    const [row] = await this.db
+      .select({
+        id: sales.id,
+        externalSaleId: sales.externalSaleId,
+        listingId: sales.listingId,
+        eventId: sales.eventId,
+        quantity: sales.quantity,
+        price: sales.price,
+        currency: sales.currency,
+        buyerEmail: sales.buyerEmail,
+        status: sales.status,
+        deliveryDelayAt: sales.deliveryDelayAt,
+        problemReason: sales.problemReason,
+        filledByUserId: sales.filledByUserId,
+        createdAt: sales.createdAt,
+        updatedAt: sales.updatedAt,
+        sourceCreatedAt: sales.sourceCreatedAt,
+        sourceUpdatedAt: sales.sourceUpdatedAt,
+        sourcePayload: sales.sourcePayload,
+      })
+      .from(sales)
+      .where(eq(sales.id, id))
+      .limit(1);
 
-    if (response.rowCount === 0) {
+    if (!row) {
       return null;
     }
 
-    const row = response.rows[0];
     const [tagsBySaleId, commentsBySaleId, usersBySaleId] = await Promise.all([
       this.loadTagsForSales([row.id]),
       this.loadCommentsForSales([row.id]),
@@ -405,54 +300,56 @@ export class SalesRepository {
 
     return this.mapRow(
       row,
-      tagsBySaleId.get(String(row.id)) ?? [],
-      commentsBySaleId.get(String(row.id)) ?? [],
-      usersBySaleId.get(String(row.id)) ?? null,
+      tagsBySaleId.get(row.id) ?? [],
+      commentsBySaleId.get(row.id) ?? [],
+      usersBySaleId.get(row.id) ?? null,
     );
   }
 
   async getIngestionCursor(key: string): Promise<string | null> {
     await this.initializeSchema();
-    const response = await this.pool.query(
-      `
-      SELECT value FROM ingestion_state
-      WHERE key = $1
-      `,
-      [key],
-    );
+    const [cursorRow] = await this.db
+      .select({ value: ingestionState.value })
+      .from(ingestionState)
+      .where(eq(ingestionState.key, key))
+      .limit(1);
 
-    if (response.rowCount === 0) {
-      return null;
-    }
-
-    return response.rows[0]?.value as string | null;
+    return cursorRow?.value ?? null;
   }
 
   async setIngestionCursor(key: string, value: string): Promise<void> {
     await this.initializeSchema();
-    await this.pool.query(
-      `
-      INSERT INTO ingestion_state (key, value)
-      VALUES ($1, $2)
-      ON CONFLICT (key) DO UPDATE SET
-        value = EXCLUDED.value,
-        updated_at = NOW()
-      `,
-      [key, value],
-    );
+
+    await this.db
+      .insert(ingestionState)
+      .values({
+        key,
+        value,
+      })
+      .onConflictDoUpdate({
+        target: ingestionState.key,
+        set: {
+          value,
+          updatedAt: new Date(),
+        },
+      });
   }
 
   async startIngestionRun(): Promise<string> {
     await this.initializeSchema();
-    const response = await this.pool.query(
-      `
-      INSERT INTO sale_ingestion_runs (status, started_at)
-      VALUES ('running', NOW())
-      RETURNING id
-      `,
-    );
+    const [run] = await this.db
+      .insert(saleIngestionRuns)
+      .values({
+        status: 'running',
+        startedAt: new Date(),
+      })
+      .returning({ id: saleIngestionRuns.id });
 
-    return response.rows[0].id as string;
+    if (!run?.id) {
+      throw new Error('Failed to create ingestion run metadata');
+    }
+
+    return run.id;
   }
 
   async finishIngestionRunSuccess(
@@ -464,32 +361,30 @@ export class SalesRepository {
     },
   ): Promise<void> {
     await this.initializeSchema();
-    await this.pool.query(
-      `
-      UPDATE sale_ingestion_runs
-      SET status = 'success',
-          finished_at = NOW(),
-          processed_count = $2,
-          inserted_count = $3,
-          updated_count = $4
-      WHERE id = $1
-      `,
-      [runId, payload.processedCount, payload.insertedCount, payload.updatedCount],
-    );
+
+    await this.db
+      .update(saleIngestionRuns)
+      .set({
+        status: 'success',
+        finishedAt: new Date(),
+        processedCount: payload.processedCount,
+        insertedCount: payload.insertedCount,
+        updatedCount: payload.updatedCount,
+      })
+      .where(eq(saleIngestionRuns.id, runId));
   }
 
   async finishIngestionRunFailure(runId: string, errorMessage: string): Promise<void> {
     await this.initializeSchema();
-    await this.pool.query(
-      `
-      UPDATE sale_ingestion_runs
-      SET status = 'failure',
-          finished_at = NOW(),
-          error_message = $2
-      WHERE id = $1
-      `,
-      [runId, errorMessage],
-    );
+
+    await this.db
+      .update(saleIngestionRuns)
+      .set({
+        status: 'failure',
+        finishedAt: new Date(),
+        errorMessage,
+      })
+      .where(eq(saleIngestionRuns.id, runId));
   }
 
   async upsertSalesFromSource(
@@ -509,58 +404,49 @@ export class SalesRepository {
     }
 
     const externalIds = uniqueRecords.map(record => record.externalSaleId);
-    const existingResponse = await this.pool.query(
-      `
-      SELECT external_sale_id
-      FROM sales
-      WHERE external_sale_id = ANY($1::text[])
-      `,
-      [externalIds],
-    );
+    const existingRows = await this.db
+      .select({ externalSaleId: sales.externalSaleId })
+      .from(sales)
+      .where(inArray(sales.externalSaleId, externalIds));
+    const existingSet = new Set(existingRows.map(row => row.externalSaleId));
 
-    const existingSet = new Set((existingResponse.rows ?? []).map(row => String(row.external_sale_id)));
-
-    const upsertSql = `
-      INSERT INTO sales (
-        external_sale_id, listing_id, event_id, quantity, price, currency, buyer_email,
-        status, source_created_at, source_updated_at, source_payload, source_sync_state
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7,
-        $8, $9, $10, $11, $12
+    await this.db
+      .insert(sales)
+      .values(
+        uniqueRecords.map(record => ({
+          externalSaleId: record.externalSaleId,
+          listingId: record.listingId,
+          eventId: record.eventId,
+          quantity: record.quantity,
+          price: record.price == null ? null : String(record.price),
+          currency: record.currency,
+          buyerEmail: record.buyerEmail,
+          status: record.sourceStatus ?? SaleStatus.RECEIVED,
+          sourceCreatedAt: this.parseDateField(record.sourceCreatedAt),
+          sourceUpdatedAt: this.parseDateField(record.sourceUpdatedAt),
+          sourcePayload: record.sourcePayload,
+          sourceSyncState,
+        })),
       )
-      ON CONFLICT (external_sale_id) DO UPDATE SET
-        listing_id = EXCLUDED.listing_id,
-        event_id = EXCLUDED.event_id,
-        quantity = EXCLUDED.quantity,
-        price = EXCLUDED.price,
-        currency = EXCLUDED.currency,
-        buyer_email = EXCLUDED.buyer_email,
-        source_created_at = EXCLUDED.source_created_at,
-        source_updated_at = EXCLUDED.source_updated_at,
-        source_payload = EXCLUDED.source_payload,
-        source_sync_state = EXCLUDED.source_sync_state,
-        status = sales.status,
-        delivery_delay_at = sales.delivery_delay_at,
-        problem_reason = sales.problem_reason,
-        filled_by_user_id = sales.filled_by_user_id
-      `;
-
-    for (const record of uniqueRecords) {
-      await this.pool.query(upsertSql, [
-        record.externalSaleId,
-        record.listingId,
-        record.eventId,
-        record.quantity,
-        record.price,
-        record.currency,
-        record.buyerEmail,
-        record.sourceStatus ?? SaleStatus.RECEIVED,
-        record.sourceCreatedAt,
-        record.sourceUpdatedAt,
-        record.sourcePayload ?? null,
-        sourceSyncState,
-      ]);
-    }
+      .onConflictDoUpdate({
+        target: sales.externalSaleId,
+        set: {
+          listingId: sql`EXCLUDED.listing_id`,
+          eventId: sql`EXCLUDED.event_id`,
+          quantity: sql`EXCLUDED.quantity`,
+          price: sql`EXCLUDED.price`,
+          currency: sql`EXCLUDED.currency`,
+          buyerEmail: sql`EXCLUDED.buyer_email`,
+          sourceCreatedAt: sql`EXCLUDED.source_created_at`,
+          sourceUpdatedAt: sql`EXCLUDED.source_updated_at`,
+          sourcePayload: sql`EXCLUDED.source_payload`,
+          sourceSyncState: sql`EXCLUDED.source_sync_state`,
+          status: sales.status,
+          deliveryDelayAt: sales.deliveryDelayAt,
+          problemReason: sales.problemReason,
+          filledByUserId: sales.filledByUserId,
+        },
+      });
 
     return {
       processedCount: uniqueRecords.length,
@@ -574,23 +460,33 @@ export class SalesRepository {
       return 0;
     }
 
-    const response = await this.pool.query(`SELECT COUNT(*)::int AS total FROM sales WHERE id = ANY($1::uuid[])`, [
-      ids,
-    ]);
+    const [response] = await this.db.select({ total: count() }).from(sales).where(inArray(sales.id, ids));
 
-    return Number(response.rows[0]?.total ?? 0);
+    return Number(response.total ?? 0);
   }
 
   async listUsersForAssignment(): Promise<Array<{ id: string; fullName: string }>> {
     await this.initializeSchema();
-    const response = await this.pool.query(
-      `SELECT id, first_name, last_name FROM users ORDER BY first_name, last_name LIMIT 200`,
-    );
+    const rows = await this.db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+      })
+      .from(users)
+      .orderBy(users.firstName, users.lastName)
+      .limit(200);
 
-    return response.rows.map(row => ({
-      id: row.id,
-      fullName: `${row.first_name ?? ''} ${row.last_name ?? ''}`.trim() || 'Unassigned',
-    }));
+    return rows.map(row => {
+      const firstName = row.firstName ?? '';
+      const lastName = row.lastName ?? '';
+      const fullName = `${firstName} ${lastName}`.trim() || 'Unassigned';
+
+      return {
+        id: row.id,
+        fullName,
+      };
+    });
   }
 
   private normalizeSortField(rawField: string): string {
@@ -599,8 +495,113 @@ export class SalesRepository {
     return allowed.has(rawField) ? rawField : 'updated_at';
   }
 
-  private buildOrderClause(sortBy: string, order: 'ASC' | 'DESC'): string {
-    return `${sortBy} ${order} NULLS LAST, created_at ${order}, id ${order}`;
+  private resolveSortColumn(field: string) {
+    if (field === 'created_at') {
+      return sales.createdAt;
+    }
+
+    if (field === 'updated_at') {
+      return sales.updatedAt;
+    }
+
+    if (field === 'delivery_delay_at') {
+      return sales.deliveryDelayAt;
+    }
+
+    return sales.status;
+  }
+
+  private buildWhereClause(filter: SaleFilterInput): SQL<unknown> | undefined {
+    const whereClauses: SQL<unknown>[] = [];
+
+    if (filter.search?.trim()) {
+      const pattern = `%${filter.search.trim()}%`;
+      whereClauses.push(
+        sql`
+          (${sales.externalSaleId} ILIKE ${pattern}
+            OR ${sales.listingId} ILIKE ${pattern}
+            OR ${sales.eventId} ILIKE ${pattern}
+            OR ${sales.buyerEmail} ILIKE ${pattern})
+        `,
+      );
+    }
+
+    if (filter.status) {
+      whereClauses.push(eq(sales.status, filter.status));
+    }
+
+    const normalizedTagIds = Array.from(new Set((filter.tagIds ?? []).map(tagId => tagId).filter(Boolean)));
+
+    if (normalizedTagIds.length > 0) {
+      const tagSaleIds = this.db
+        .select({ saleId: saleTags.saleId })
+        .from(saleTags)
+        .where(inArray(saleTags.tagId, normalizedTagIds));
+
+      whereClauses.push(inArray(sales.id, tagSaleIds));
+    }
+
+    if (filter.has_delay === true) {
+      whereClauses.push(sql`${sales.deliveryDelayAt} IS NOT NULL`);
+    }
+
+    if (filter.has_delay === false) {
+      whereClauses.push(sql`${sales.deliveryDelayAt} IS NULL`);
+    }
+
+    if (filter.overdue_only === true) {
+      whereClauses.push(lt(sales.deliveryDelayAt, new Date()));
+    }
+
+    if (whereClauses.length === 0) {
+      return undefined;
+    }
+
+    return and(...whereClauses);
+  }
+
+  private async updateSale(
+    id: string,
+    values: {
+      status?: SaleStatus;
+      deliveryDelayAt?: string | null;
+      problemReason?: string | null;
+      filledByUserId?: string | null;
+    },
+    expectedUpdatedAt?: string | null,
+  ): Promise<Sale | null> {
+    await this.initializeSchema();
+
+    const where = expectedUpdatedAt
+      ? and(eq(sales.id, id), eq(sales.updatedAt, this.toDate(expectedUpdatedAt)))
+      : eq(sales.id, id);
+
+    const { status, deliveryDelayAt, problemReason, filledByUserId } = values;
+
+    const updatePayload: {
+      status?: SaleStatus;
+      deliveryDelayAt?: Date | null;
+      problemReason?: string | null;
+      filledByUserId?: string | null;
+      updatedAt: Date;
+    } = {
+      status,
+      problemReason,
+      filledByUserId,
+      updatedAt: new Date(),
+    };
+
+    if (deliveryDelayAt !== undefined) {
+      updatePayload.deliveryDelayAt = deliveryDelayAt === null ? null : this.toDate(deliveryDelayAt);
+    }
+
+    const updateResult = await this.db.update(sales).set(updatePayload).where(where).returning({ id: sales.id });
+
+    if (updateResult.length === 0) {
+      return null;
+    }
+
+    return await this.findById(id);
   }
 
   private async loadTagsForSales(saleIds: string[]): Promise<Map<string, SaleTag[]>> {
@@ -608,36 +609,30 @@ export class SalesRepository {
       return new Map();
     }
 
-    const response = await this.pool.query(
-      `
-      SELECT
-        st.sale_id,
-        st.tag_id AS id,
-        t.name
-      FROM sale_tags st
-      LEFT JOIN tags t ON t.id = st.tag_id
-      WHERE st.sale_id = ANY($1::uuid[])
-      ORDER BY t.name ASC
-      `,
-      [saleIds],
-    );
+    const rows = await this.db
+      .select({
+        saleId: saleTags.saleId,
+        id: tags.id,
+        name: tags.name,
+      })
+      .from(saleTags)
+      .leftJoin(tags, eq(tags.id, saleTags.tagId))
+      .where(inArray(saleTags.saleId, saleIds))
+      .orderBy(tags.name);
 
     const tagsBySale = new Map<string, SaleTag[]>();
 
-    for (const row of response.rows) {
-      const saleId = row.sale_id as string;
-      const existing = tagsBySale.get(saleId) ?? [];
-      const name = row.name as string | null;
-
-      if (!name) {
+    for (const row of rows) {
+      if (!row.id || !row.name) {
         continue;
       }
 
+      const existing = tagsBySale.get(row.saleId) ?? [];
       existing.push({
-        id: row.id as string,
-        name,
+        id: row.id,
+        name: row.name,
       });
-      tagsBySale.set(saleId, existing);
+      tagsBySale.set(row.saleId, existing);
     }
 
     return tagsBySale;
@@ -648,32 +643,31 @@ export class SalesRepository {
       return new Map();
     }
 
-    const response = await this.pool.query(
-      `
-      SELECT
-        c.sale_id,
-        c.id,
-        c.comment,
-        c.created_at,
-        COALESCE(u.first_name || ' ' || u.last_name, 'Unknown') AS author
-      FROM sale_comments c
-      LEFT JOIN users u ON u.id = c.author_user_id
-      WHERE c.sale_id = ANY($1::uuid[])
-      ORDER BY c.created_at ASC
-      `,
-      [saleIds],
-    );
+    const rows = await this.db
+      .select({
+        saleId: saleComments.saleId,
+        id: saleComments.id,
+        comment: saleComments.comment,
+        createdAt: saleComments.createdAt,
+        authorFirstName: users.firstName,
+        authorLastName: users.lastName,
+      })
+      .from(saleComments)
+      .leftJoin(users, eq(users.id, saleComments.authorUserId))
+      .where(inArray(saleComments.saleId, saleIds))
+      .orderBy(saleComments.createdAt);
 
     const commentsBySale = new Map<string, SaleComment[]>();
 
-    for (const row of response.rows) {
-      const saleId = row.sale_id as string;
+    for (const row of rows) {
+      const saleId = row.saleId as string;
       const list = commentsBySale.get(saleId) ?? [];
+
       list.push({
-        id: row.id as string,
-        author: String(row.author ?? 'Unknown'),
-        comment: row.comment as string,
-        createdAt: String(row.created_at),
+        id: row.id,
+        author: this.authorName(row.authorFirstName ?? null, row.authorLastName ?? null),
+        comment: row.comment,
+        createdAt: this.toDateString(row.createdAt),
       });
       commentsBySale.set(saleId, list);
     }
@@ -686,32 +680,34 @@ export class SalesRepository {
       return new Map();
     }
 
-    const response = await this.pool.query(
-      `
-      SELECT
-        s.id AS sale_id,
-        u.id,
-        u.auth_sub,
-        u.first_name,
-        u.last_name
-      FROM sales s
-      LEFT JOIN users u ON u.id = s.filled_by_user_id
-      WHERE s.id = ANY($1::uuid[]) AND u.id IS NOT NULL
-      `,
-      [saleIds],
-    );
+    const rows = await this.db
+      .select({
+        saleId: sales.id,
+        id: users.id,
+        authSub: users.authSub,
+        firstName: users.firstName,
+        lastName: users.lastName,
+      })
+      .from(sales)
+      .leftJoin(users, eq(users.id, sales.filledByUserId))
+      .where(inArray(sales.id, saleIds));
 
     const map = new Map<string, UserRecord>();
 
-    for (const row of response.rows) {
-      const firstName = row.first_name as string | null;
-      const lastName = row.last_name as string | null;
-      const fullName = `${firstName ?? ''} ${lastName ?? ''}`.trim() || 'Unassigned';
-      map.set(row.sale_id as string, {
-        id: row.id as string,
-        authSub: (row.auth_sub as string | null) ?? null,
-        firstName: firstName ?? '',
-        lastName: lastName ?? '',
+    for (const row of rows) {
+      if (!row.id) {
+        continue;
+      }
+
+      const firstName = row.firstName ?? '';
+      const lastName = row.lastName ?? '';
+      const fullName = `${firstName} ${lastName}`.trim() || 'Unassigned';
+
+      map.set(row.saleId, {
+        id: row.id,
+        authSub: row.authSub ?? null,
+        firstName,
+        lastName,
         fullName,
       });
     }
@@ -720,56 +716,154 @@ export class SalesRepository {
   }
 
   private async ensureCommentAuthorUserId(): Promise<string> {
-    const response = await this.pool.query(
-      `
-      SELECT id FROM users
-      ORDER BY created_at DESC
-      LIMIT 1
-      `,
-    );
+    const rows = await this.db.select({ id: users.id }).from(users).orderBy(desc(users.createdAt)).limit(1);
 
-    if (response.rowCount && response.rowCount > 0) {
-      return response.rows[0].id as string;
+    if (rows.length > 0) {
+      return rows[0].id;
     }
 
-    const inserted = await this.pool.query(
-      `
-      INSERT INTO users (id, auth_sub, first_name, last_name)
-      VALUES (gen_random_uuid(), $1, $2, $3)
-      RETURNING id
-      `,
-      ['seed-system-operator', 'System', 'Operator'],
-    );
+    const [inserted] = await this.db
+      .insert(users)
+      .values({
+        id: randomUUID(),
+        authSub: 'seed-system-operator',
+        firstName: 'System',
+        lastName: 'Operator',
+      })
+      .returning({ id: users.id });
 
-    return inserted.rows[0].id as string;
+    if (!inserted?.id) {
+      throw new Error('Could not create system author user');
+    }
+
+    return inserted.id;
+  }
+
+  private async getUserFullName(userId: string): Promise<string> {
+    const [row] = await this.db
+      .select({ firstName: users.firstName, lastName: users.lastName })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!row) {
+      return 'Unknown';
+    }
+
+    return this.authorName(row.firstName ?? null, row.lastName ?? null);
   }
 
   private mapRow(
-    row: Record<string, unknown>,
+    row: {
+      id: string;
+      externalSaleId: string;
+      listingId: string | null;
+      eventId: string | null;
+      quantity: number | null;
+      price: string | number | null;
+      currency: string | null;
+      buyerEmail: string | null;
+      sourcePayload: Record<string, unknown> | null;
+      status: string;
+      deliveryDelayAt: string | Date | null;
+      problemReason: string | null;
+      filledByUserId: string | null;
+      createdAt: string | Date;
+      updatedAt: string | Date;
+      sourceCreatedAt: string | Date | null;
+      sourceUpdatedAt: string | Date | null;
+    },
     tags: SaleTag[] = [],
     comments: SaleComment[] = [],
     filledBy: UserRecord | null = null,
   ): Sale {
     return {
-      id: row.id as string,
-      externalSaleId: row.external_sale_id as string,
-      listingId: (row.listing_id as string | null) ?? null,
-      eventId: (row.event_id as string | null) ?? null,
-      quantity: (row.quantity as number | null) ?? null,
-      price: row.price == null ? null : Number(row.price as string),
-      currency: row.currency as string | null,
-      buyerEmail: row.buyer_email as string | null,
-      sourcePayload: row.source_payload ? (row.source_payload as Record<string, unknown>) : null,
-      status: row.status as SaleStatus,
-      deliveryDelayAt: row.delivery_delay_at ? String(row.delivery_delay_at) : null,
-      problemReason: row.problem_reason as string | null,
+      id: row.id,
+      externalSaleId: row.externalSaleId,
+      listingId: row.listingId ?? null,
+      eventId: row.eventId ?? null,
+      quantity: row.quantity,
+      price: this.normalizePrice(row.price),
+      currency: row.currency,
+      buyerEmail: row.buyerEmail,
+      sourcePayload: row.sourcePayload,
+      status: this.normalizeSaleStatus(row.status),
+      deliveryDelayAt: row.deliveryDelayAt ? this.toDateString(row.deliveryDelayAt) : null,
+      problemReason: row.problemReason ?? null,
       filledBy,
       tags,
       comments,
-      createdAt: String(row.created_at),
-      updatedAt: String(row.updated_at),
-      sourceCreatedAt: (row.source_created_at as string | null) ?? null,
-      sourceUpdatedAt: (row.source_updated_at as string | null) ?? null,
+      createdAt: this.toDateString(row.createdAt),
+      updatedAt: this.toDateString(row.updatedAt),
+      sourceCreatedAt: row.sourceCreatedAt ? this.toDateString(row.sourceCreatedAt) : null,
+      sourceUpdatedAt: row.sourceUpdatedAt ? this.toDateString(row.sourceUpdatedAt) : null,
     };
+  }
+
+  private normalizePrice(price: string | number | null): number | null {
+    if (price == null) {
+      return null;
+    }
+
+    if (typeof price === 'number') {
+      return price;
+    }
+
+    const parsed = Number(price);
+
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  private parseDateField(value: string | null): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  private toDate(value: string | Date | null | undefined): Date {
+    if (value == null) {
+      throw new Error('Date value is required');
+    }
+
+    const parsed = typeof value === 'string' ? new Date(value) : value;
+
+    if (Number.isNaN(parsed.getTime())) {
+      throw new Error(`Invalid date value: ${value}`);
+    }
+
+    return parsed;
+  }
+
+  private toDateString(value: string | Date): string {
+    const parsed = typeof value === 'string' ? new Date(value) : value;
+
+    if (Number.isNaN(parsed.getTime())) {
+      return String(value);
+    }
+
+    return parsed.toISOString();
+  }
+
+  private authorName(firstName: string | null, lastName: string | null): string {
+    const fullName = `${firstName ?? ''} ${lastName ?? ''}`.trim();
+
+    return fullName || 'Unknown';
+  }
+
+  private normalizeSaleStatus(value: string): SaleStatus {
+    if (
+      value === SaleStatus.RECEIVED ||
+      value === SaleStatus.COMPLETED ||
+      value === SaleStatus.DELAYED ||
+      value === SaleStatus.PROBLEM
+    ) {
+      return value;
+    }
+
+    return SaleStatus.RECEIVED;
   }
 }

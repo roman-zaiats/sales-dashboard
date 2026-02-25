@@ -35,6 +35,7 @@ export const AppEnvironmentSchema = zod
     MONGODB_URI: zod.string().optional(),
     SECRET_MONGODB_URI: zod.string().optional(),
 
+    DATABASE_URL: zod.string().optional(),
     POSTGRES_URL: zod.string().optional(),
     SALES_DATABASE_URL: zod.string().default('postgresql://postgres:postgres@localhost:5432/sales'),
     SALES_DATABASE_SSL: BooleanLike.default(false),
@@ -45,13 +46,19 @@ export const AppEnvironmentSchema = zod
     MONGO_INGESTION_BATCH_SIZE: zod.coerce.number().default(250),
 
     SYNC_SOURCE_CURSOR_KEY: zod.string().default('mongodb:last_processed_created_at'),
-
-    APP_MODE: zod.enum(['leader', 'worker']).default('leader'),
-    WORKER_PORT: zod.coerce.number().default(8002),
   })
-  .refine(data => Boolean(data.MONGODB_URI) || Boolean(data.SECRET_MONGODB_URI) || Boolean(data.POSTGRES_URL), {
-    message: 'Either MONGODB_URI, SECRET_MONGODB_URI or POSTGRES_URL must be provided',
-  });
+  .refine(
+    data =>
+      Boolean(data.MONGODB_URI) ||
+      Boolean(data.SECRET_MONGODB_URI) ||
+      Boolean(data.POSTGRES_URL) ||
+      Boolean(data.SALES_DATABASE_URL) ||
+      Boolean(data.DATABASE_URL),
+    {
+      message:
+        'Either MONGODB_URI, SECRET_MONGODB_URI, POSTGRES_URL, SALES_DATABASE_URL, or DATABASE_URL must be provided',
+    },
+  );
 
 export const env = parseEnv(AppEnvironmentSchema);
 

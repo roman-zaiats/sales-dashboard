@@ -3,8 +3,14 @@ dist/
 build/
 coverage/
 *.log
+*.tmp
+*.swp
 .env
 .env.*
 back/src/generated/**
 back/drizzle.config.ts
 back/seed-sales-fixtures.cjs
+back/.turbo
+back/.next
+front/.turbo
+front/.next

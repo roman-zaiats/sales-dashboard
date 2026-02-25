@@ -1,6 +1,14 @@
 node_modules
 dist
 coverage
+build
 logs
 .env
 .env.*
+*.log
+*.tmp
+*.swp
+.tmp
+.vscode
+.idea
+Thumbs.db

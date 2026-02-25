@@ -37,7 +37,7 @@ Backend required values include the operational database credentials used by Nes
 
 Shortcut:
 
-- `./scripts/phase-gate.sh`
+- `scripts/phase-gate.sh`
 
 ## Development mode
 

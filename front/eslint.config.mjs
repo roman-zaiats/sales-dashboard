@@ -5,7 +5,20 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: ['dist/**/*', 'coverage/**/*', 'src/**/*.d.ts', 'src/generated/**/*'],
+    ignores: [
+      'node_modules/**/*',
+      'dist/**/*',
+      'build/**/*',
+      'coverage/**/*',
+      '*.log',
+      '*.tmp',
+      '*.swp',
+      '.env*',
+      'src/**/*.d.ts',
+      'src/generated/**/*',
+      '.vscode/**',
+      '.idea/**',
+    ],
   },
   {
     files: ['**/*.{ts,tsx}'],

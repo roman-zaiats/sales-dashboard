@@ -53,6 +53,10 @@ export type SaleSourceRecord = {
   sourcePayload: SalesSourcePayload | null;
 };
 
+export type SaleConcurrencyInput = {
+  expectedUpdatedAt?: string | null;
+};
+
 export type SaleOperationalMetadata = {
   createdAt: string;
   updatedAt: string;
@@ -98,6 +102,7 @@ export type Sale = {
   comments: SaleComment[];
   createdAt: string;
   updatedAt: string;
+  expectedUpdatedAt?: string | null;
   sourceCreatedAt: string | null;
   sourceUpdatedAt: string | null;
 };

@@ -22,7 +22,23 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ['**/*.js', '**/*.mjs', '**/*jest.config.ts', '**/drizzle.config.ts', 'src/generated/**/*', 'dist/**/*'],
+    ignores: [
+      '**/*.js',
+      '**/*.mjs',
+      '**/*jest.config.ts',
+      '**/drizzle.config.ts',
+      'src/generated/**/*',
+      'node_modules/**',
+      'dist/**/*',
+      'build/**/*',
+      'coverage/**/*',
+      '*.log',
+      '*.tmp',
+      '*.swp',
+      '.env*',
+      '.vscode/**',
+      '.idea/**',
+    ],
   },
   ...compat.extends(
     'eslint:recommended',

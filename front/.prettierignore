@@ -4,3 +4,12 @@ coverage
 .DS_Store
 .env
 .env.*
+build
+logs
+*.log
+*.tmp
+*.swp
+.tmp
+.vscode
+.idea
+Thumbs.db
