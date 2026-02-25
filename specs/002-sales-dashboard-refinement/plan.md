@@ -23,7 +23,7 @@ Move the dashboard to a single Nest.js process with Drizzle ORM-backed persisten
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- [ ] Single-process runtime is planned across all paths (current codebase includes `start:leader`/`start:worker` launch scripts and `leader-launch.ts`/`worker-launch.ts`; consolidation is a planned deliverable, so implementation gate is expected to be achieved by end of phase execution).
+- [x] Single-process runtime is enforced across all paths (leader/worker launch modes have been removed).
 - [ ] Drizzle ORM migration is included as explicit migration plan for sales/tag/comment/user/ingestion metadata reads/writes.
 - [ ] ShadCN component standard is used for board/list/detail/sidebar surfaces and new/updated widgets.
 - [x] GraphQL contract remains source of truth and frontend types are generated, not hand-edited.
@@ -49,8 +49,6 @@ back/
 ├── src/
 │   ├── app.module.ts
 │   ├── main-launch.ts
-│   ├── leader-launch.ts
-│   ├── worker-launch.ts
 │   ├── modules/
 │   │   ├── graphql.module.ts
 │   │   └── sales/
@@ -140,7 +138,7 @@ after updating planning artifacts, adding only new technology context (for examp
 
 | Violation / risk | Why Needed | Simpler Alternative Rejected Because |
 |------------------|------------|-------------------------------------|
-| Consolidation of leader/worker into single app | Required by product direction and constitution | Maintaining two modes duplicates bootstrap, scheduling, and operational posture |
+| Consolidation of leader/worker into single app | Completed in current branch; startup, ingestion, and API now run from one backend entrypoint | Maintaining two modes duplicates bootstrap, scheduling, and operational posture |
 | Adding tag suggestion API path | Required for discoverable multi-select UX | Inference from sales list alone does not scale and duplicates query logic |
 | Introducing drag-and-drop conflict handling | Required by FR-007 and FR-014 | Blind writes would lose concurrent-update correctness and violate stale behavior |
 | Drizzle migration before full UI refactor | Required for ORM consistency and governance | Postponing migration increases cross-phase complexity and mixed data access patterns |

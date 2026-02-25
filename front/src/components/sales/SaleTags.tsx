@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import type { Sale } from '@/generated/graphql';
 
 type SaleTagsProps = {
@@ -29,22 +31,22 @@ export const SaleTags = ({ sale, onAddTag, onRemoveTag, isSubmitting, disabled }
   };
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h4 className="text-base font-semibold text-slate-900">Tags</h4>
+    <section className="rounded-xl border border-border bg-card p-4 shadow-sm">
+      <h4 className="text-sm font-semibold">Tags</h4>
 
       <div className="mt-3 flex flex-wrap gap-2">
         {sale.dashboardTags.length === 0 ? (
-          <p className="text-sm text-slate-500">No tags added.</p>
+          <p className="text-sm text-muted-foreground">No tags added.</p>
         ) : (
           sale.dashboardTags.map(tag => (
             <span
               key={tag.id}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-3 py-1 text-sm text-secondary-foreground"
             >
               {tag.name}
               <button
                 type="button"
-                className="text-slate-500 transition hover:text-rose-600"
+                className="text-muted-foreground transition hover:text-destructive"
                 onClick={() => void onRemoveTag(tag.name)}
                 disabled={isSubmitting || disabled}
               >
@@ -56,21 +58,22 @@ export const SaleTags = ({ sale, onAddTag, onRemoveTag, isSubmitting, disabled }
       </div>
 
       <div className="mt-4 flex flex-wrap gap-3">
-        <input
-          className="min-w-48 flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-sky-200 transition focus:ring-2"
+        <Input
+          className="min-w-48 flex-1"
           placeholder="Add a tag"
           value={newTag}
           onChange={event => setNewTag(event.target.value)}
           disabled={isSubmitting || disabled}
         />
-        <button
+        <Button
           type="button"
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          variant="secondary"
+          size="md"
           onClick={() => void submitTag()}
           disabled={isSubmitting || disabled || !newTag.trim()}
         >
           Add tag
-        </button>
+        </Button>
       </div>
     </section>
   );

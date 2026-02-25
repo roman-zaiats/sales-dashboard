@@ -111,18 +111,18 @@
 - [X] T048 [P] [US5] Replace/align sales table controls in `front/src/components/sales/SaleListPage.tsx` with local UI primitives
 - [X] T049 [US5] Replace/align board card controls and containers in `front/src/components/sales/SaleBoardCard.tsx`
 - [X] T050 [P] [US5] Replace sidebar shell shell in `front/src/app/dashboard` to ShadCN `sidebar` primitives
-- [ ] T051 [US5] Rework filter pane controls in `front/src/app/dashboard/sales` to use ShadCN input/select components
-- [ ] T052 [US5] Align delayed route UI to the same component system in `front/src/app/dashboard/delayed`
-- [ ] T053 [US5] Rework sale detail page interactions in `front/src/app/dashboard/sale`
+- [X] T051 [US5] Rework filter pane controls in `front/src/app/dashboard/sales` to use ShadCN input/select components
+- [X] T052 [US5] Align delayed route UI to the same component system in `front/src/app/dashboard/delayed`
+- [X] T053 [US5] Rework sale detail page interactions in `front/src/app/dashboard/sale`
 
 ## Final Phase: Polish & Cross-Cutting Concerns
 
-- [ ] T054 [P] Run backend verification pipeline from repository constitution: `cd back && npm run build`
-- [ ] T055 [P] Run backend tests: `cd back && npm run test`
-- [ ] T056 [P] Run frontend typecheck/build: `cd front && npm run typecheck` and `cd front && npm run build`
-- [ ] T057 [P] Reconcile schema/type generation source-of-truth after contract changes (`front/npm run codegen:graphql`)
-- [ ] T058 [P] Update runbook in `specs/002-sales-dashboard-refinement/quickstart.md` for unified runtime + Drizzle + drag-drop verification flow
-- [ ] T059 [P] Remove stale worker/leader references from developer docs in `AGENTS.md` and related docs
+- [X] T054 [P] Run backend verification pipeline from repository constitution: `cd back && npm run build`
+- [X] T055 [P] Run backend tests: `cd back && npm run test`
+- [X] T056 [P] Run frontend typecheck/build: `cd front && npm run typecheck` and `cd front && npm run build`
+- [X] T057 [P] Reconcile schema/type generation source-of-truth after contract changes (`front/npm run codegen:graphql`)
+- [X] T058 [P] Update runbook in `specs/002-sales-dashboard-refinement/quickstart.md` for unified runtime + Drizzle + drag-drop verification flow
+- [X] T059 [P] Remove stale worker/leader references from developer docs in `AGENTS.md` and related docs
 
 ## Dependencies & Execution Order
 

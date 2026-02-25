@@ -39,6 +39,7 @@ tests/
 - 001-sales-operations-dashboard: Added TypeScript (Node.js + React 19) + `@nestjs/common`, `@nestjs/graphql` (schema-first), `@apollo/server`, `@nestjs/mongoose`, `@apollo/client`, `@tanstack/react-query`
 
 - 001-sales-operations-dashboard: Added
+- 002-sales-operations-dashboard: Refined to a single-process dashboard runtime and removed leader/worker launch-mode requirements.
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

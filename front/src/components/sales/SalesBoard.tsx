@@ -24,9 +24,9 @@ export const SalesBoard = ({ sales }: SalesBoardProps) => {
       {STATUS_COLUMNS.map(status => (
         <section key={status} className="sales-board-column">
           <h3 className="sales-board-title">{SALE_BOARD_LABELS[status] || status}</h3>
-          <ul className="mt-3 grid gap-2">
+              <ul className="mt-3 grid gap-2">
             {byStatus(sales, status).length === 0 ? (
-              <li key={`${status}-empty`} className="text-sm text-slate-500">
+              <li key={`${status}-empty`} className="text-sm text-muted-foreground">
                 No items
               </li>
             ) : (

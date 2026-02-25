@@ -9,20 +9,20 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const BASE_CLASS =
-  'inline-flex items-center justify-center rounded-md font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 disabled:pointer-events-none disabled:opacity-50';
+  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
 
 const SIZE_CLASS: Record<ButtonSize, string> = {
   lg: 'h-11 px-6 text-base',
   md: 'h-10 px-4 text-sm',
-  sm: 'h-8 px-3 text-sm',
+  sm: 'h-9 px-3 text-sm',
 };
 
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
-  default: 'bg-slate-900 text-white hover:bg-slate-800',
-  ghost: 'bg-transparent text-slate-700 hover:bg-slate-100',
-  link: 'h-auto rounded-none bg-transparent p-0 text-sky-700 underline-offset-4 hover:underline',
-  outline: 'border border-slate-300 bg-white text-slate-900 hover:bg-slate-50',
-  secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200',
+  default: 'bg-primary text-primary-foreground hover:bg-accent hover:text-accent-foreground',
+  ghost: 'bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground',
+  link: 'h-auto rounded-none bg-transparent p-0 text-primary underline-offset-4 hover:underline',
+  outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+  secondary: 'bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

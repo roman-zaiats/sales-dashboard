@@ -36,10 +36,10 @@ export const SalesTable = ({ sales }: SalesTableProps) => {
           <TableHead>Open</TableHead>
         </TableRow>
       </TableHeader>
-      <TableBody>
+        <TableBody>
           {sales.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8}>
+              <TableCell colSpan={8} className="text-muted-foreground">
                 No sales were returned for the current filters.
               </TableCell>
             </TableRow>
@@ -54,7 +54,7 @@ export const SalesTable = ({ sales }: SalesTableProps) => {
                 <TableCell>{sale.dashboardTags.map(tag => tag.name).join(', ') || '—'}</TableCell>
                 <TableCell>{sale.filledBy?.fullName || '—'}</TableCell>
                 <TableCell>
-                  <Link className="text-sky-700 hover:text-sky-900" to={`/dashboard/sale/${sale.id}`}>
+                  <Link className="text-primary hover:text-foreground" to={`/dashboard/sale/${sale.id}`}>
                     Open
                   </Link>
                 </TableCell>

@@ -77,7 +77,7 @@ export const DelayedSalesTable = ({ sales }: DelayedSalesTableProps) => {
       <TableBody>
           {sorted.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8}>
+              <TableCell className="text-muted-foreground" colSpan={8}>
                 No delayed sales were returned for the current filters.
               </TableCell>
             </TableRow>
@@ -101,7 +101,7 @@ export const DelayedSalesTable = ({ sales }: DelayedSalesTableProps) => {
                 <TableCell>{sale.dashboardTags.map(tag => tag.name).join(', ') || '—'}</TableCell>
                 <TableCell>{sale.filledBy?.fullName || '—'}</TableCell>
                 <TableCell>
-                  <Link className="text-sky-700 hover:text-sky-900" to={`/dashboard/sale/${sale.id}`}>
+                  <Link className="text-primary hover:text-foreground" to={`/dashboard/sale/${sale.id}`}>
                     Open
                   </Link>
                 </TableCell>

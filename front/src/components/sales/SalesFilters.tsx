@@ -40,8 +40,8 @@ export const SalesFilters = ({
   };
 
   return (
-    <div className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-3 lg:grid-cols-6">
-      <label className="flex flex-col gap-1 text-sm text-slate-700">
+    <div className="grid gap-4 rounded-lg border border-border bg-card p-4 md:grid-cols-3 lg:grid-cols-6">
+      <label className="flex flex-col gap-1 text-sm text-muted-foreground">
         Search
         <Input
           value={search}
@@ -50,7 +50,7 @@ export const SalesFilters = ({
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-sm text-slate-700">
+      <label className="flex flex-col gap-1 text-sm text-muted-foreground">
         Status
         <Select
           value={status ?? 'ALL'}
@@ -66,7 +66,7 @@ export const SalesFilters = ({
         </Select>
       </label>
 
-      <label className="flex flex-col gap-1 text-sm text-slate-700">
+      <label className="flex flex-col gap-1 text-sm text-muted-foreground">
         Delay
         <Select
           className={`${
@@ -89,7 +89,7 @@ export const SalesFilters = ({
         </Select>
       </label>
 
-      <label className="flex flex-col gap-1 text-sm text-slate-700">
+      <label className="flex flex-col gap-1 text-sm text-muted-foreground">
         Overdue only
         <Select
           value={overdueOnly === undefined ? 'ALL' : String(overdueOnly)}

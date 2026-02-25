@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { type Sale, type SaleStatus } from '@/generated/graphql';
 
 type SaleEditableFieldsProps = {
@@ -86,14 +89,13 @@ export const SaleEditableFields = ({
   };
 
   return (
-    <form className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm" onSubmit={onSubmitInternal}>
-      <h4 className="text-base font-semibold text-slate-900">Edit operational fields</h4>
+    <form className="mt-5 rounded-xl border border-border bg-card p-4 shadow-sm" onSubmit={onSubmitInternal}>
+      <h4 className="text-sm font-semibold">Edit operational fields</h4>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <label className="flex flex-col gap-1 text-sm text-slate-700">
+        <label className="flex flex-col gap-1 text-sm text-muted-foreground">
           Status
-          <select
-            className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-sky-200 transition focus:ring-2"
+          <Select
             value={status}
             onChange={event => setStatus(event.target.value as SaleStatus)}
             disabled={isSubmitting || disabled}
@@ -102,25 +104,24 @@ export const SaleEditableFields = ({
             <option value="COMPLETED">COMPLETED</option>
             <option value="DELAYED">DELAYED</option>
             <option value="PROBLEM">PROBLEM</option>
-          </select>
+          </Select>
         </label>
 
-        <label className="flex flex-col gap-1 text-sm text-slate-700">
+        <label className="flex flex-col gap-1 text-sm text-muted-foreground">
           Delivery delay
-          <input
-            className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-sky-200 transition focus:ring-2"
+          <Input
             type="datetime-local"
             value={deliveryDelayAt}
             onChange={event => setDeliveryDelayAt(event.target.value)}
             disabled={isSubmitting || disabled}
           />
-          <span className="text-xs text-slate-500">Use blank value to clear the delay.</span>
+          <span className="text-xs text-muted-foreground">Use blank value to clear the delay.</span>
         </label>
 
-        <label className="md:col-span-2 flex flex-col gap-1 text-sm text-slate-700">
+        <label className="md:col-span-2 flex flex-col gap-1 text-sm text-muted-foreground">
           Problem reason
           <textarea
-            className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-sky-200 transition focus:ring-2"
+            className="min-h-24 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             value={problemReason}
             onChange={event => setProblemReason(event.target.value)}
             rows={4}
@@ -130,14 +131,10 @@ export const SaleEditableFields = ({
       </div>
 
       <div className="mt-4 flex items-center gap-3">
-        <button
-          className="rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-          type="submit"
-          disabled={!canSubmit}
-        >
+        <Button type="submit" variant="default" size="md" disabled={!canSubmit}>
           {isSubmitting ? 'Saving…' : 'Save changes'}
-        </button>
-        <span className="text-sm text-slate-500">{canSubmit ? 'Changes detected' : 'No changes to save'}</span>
+        </Button>
+        <span className="text-sm text-muted-foreground">{canSubmit ? 'Changes detected' : 'No changes to save'}</span>
       </div>
     </form>
   );

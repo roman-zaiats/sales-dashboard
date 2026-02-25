@@ -22,18 +22,18 @@ const navLinks: NavLinkConfig[] = [
 ];
 
 const sidebarNavClass = (isActive: boolean): string =>
-  `group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition ${
+  `shadcn-sidebar-link ${
     isActive
-      ? 'bg-slate-900 text-white shadow-sm'
-      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+      ? 'shadcn-sidebar-link-active'
+      : 'shadcn-sidebar-link-inactive'
   }`;
 
 const SalesSidebar = () => {
   return (
     <Sidebar>
       <SidebarHeader>
-        <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Workspace</p>
-        <h1 className="mt-2 text-lg font-bold text-slate-900">Sales Operations</h1>
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Workspace</p>
+        <h1 className="mt-2 text-lg font-semibold">Sales Operations</h1>
       </SidebarHeader>
 
       <SidebarContent aria-label="Sales navigation">
@@ -45,7 +45,7 @@ const SalesSidebar = () => {
                 className={({ isActive }) => sidebarNavClass(isActive)}
               >
                 <span
-                  className="grid h-6 w-6 place-items-center rounded-md bg-white/90 text-[14px] text-slate-500 group-hover:text-slate-700"
+                  className="grid h-7 w-7 place-items-center rounded-md bg-sidebar-accent text-[14px] text-sidebar-accent-foreground"
                   aria-hidden="true"
                 >
                   {link.icon}
@@ -58,24 +58,26 @@ const SalesSidebar = () => {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="rounded-md bg-white px-3 py-2 text-xs text-slate-500">Internal dashboard for operational triage.</div>
+        <div className="rounded-md border border-sidebar bg-sidebar-accent px-3 py-2 text-xs text-sidebar-accent-foreground">
+          Operational sales triage dashboard.
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
 };
 
 const AppShellTopBar = () => {
-  return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4">
-      <div className="text-sm font-semibold text-slate-700">Sales Operations</div>
-      <div className="text-xs text-slate-500">Dashboard</div>
+    return (
+    <header className="sticky top-0 flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-4 backdrop-blur">
+      <div className="text-sm font-semibold">Sales Operations</div>
+      <div className="text-xs text-muted-foreground">Dashboard</div>
     </header>
   );
 };
 
 const AppFrame = (): JSX.Element => {
   return (
-    <div className="flex min-h-screen bg-slate-100">
+    <div className="flex min-h-screen bg-muted">
       <SalesSidebar />
       <main className="min-h-screen flex-1">
         <AppShellTopBar />

@@ -4,6 +4,8 @@
 
 This document describes setup and verification for development of `002-sales-dashboard-refinement`.
 
+The backend now runs as a single unified process with Drizzle-persisted dashboard tables.
+
 ## Prerequisites
 
 - Node.js (matching workspace expectation for npm tooling)
@@ -26,6 +28,7 @@ Backend required values include the operational database credentials used by Nes
 3. Confirm runtime mode is unified:
    - Backend runs only from `npm run start` (no leader/worker split).
    - `back/package.json` has a single runtime path used by local and production runs.
+   - Drizzle schema initialization is the persistence baseline for tags, sales, comments, users, and ingestion state.
 4. If connecting to an existing production PostgreSQL, apply migration history safely:
    - `cd back && npm run db:migrate` (for a fresh DB with Drizzle history table).
    - For pre-existing schemas, coordinate one-off baseline migration handling with your DB owner before migration.
@@ -40,6 +43,8 @@ Backend required values include the operational database credentials used by Nes
    - `cd front && npm run typecheck`
 4. Frontend build:
    - `cd front && npm run build`
+5. Regenerate frontend GraphQL types from contract (if edited):
+   - `cd front && npm run codegen:graphql`
 
 Shortcut:
 
@@ -55,7 +60,7 @@ Shortcut:
    - Sales, board, delayed, and detail routes are reachable.
 4. Validate board behavior:
    - Drag card across status columns.
-   - Confirm update reflected in table/detail views quickly.
+   - Confirm status updates are persisted and reflected in table/detail views quickly.
 
 ## Contract tooling
 

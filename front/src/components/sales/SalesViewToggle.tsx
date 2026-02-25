@@ -13,27 +13,43 @@ export const SalesViewToggle = ({ value, onChange }: SalesViewToggleProps) => {
   };
 
   return (
-    <fieldset className="flex gap-4 px-3 py-2 text-sm font-medium text-slate-700">
+    <fieldset className="inline-flex rounded-md border border-input bg-background p-1">
       <legend className="sr-only">View</legend>
-      <label className="inline-flex items-center gap-2">
+      <label className="inline-flex cursor-pointer">
         <input
-          className="h-4 w-4 text-sky-600"
+          className="peer sr-only"
           type="radio"
           value="table"
           checked={value === 'table'}
           onChange={handleChange}
         />
-        Table
+        <span
+          className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition ${
+            value === 'table'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:bg-accent'
+          }`}
+        >
+          Table
+        </span>
       </label>
-      <label className="inline-flex items-center gap-2">
+      <label className="inline-flex cursor-pointer">
         <input
-          className="h-4 w-4 text-sky-600"
+          className="peer sr-only"
           type="radio"
           value="board"
           checked={value === 'board'}
           onChange={handleChange}
         />
-        Board
+        <span
+          className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition ${
+            value === 'board'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:bg-accent'
+          }`}
+        >
+          Board
+        </span>
       </label>
     </fieldset>
   );

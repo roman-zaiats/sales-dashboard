@@ -248,9 +248,9 @@ export const TagFilterInput = ({ tagIds, onTagsChange }: TagFilterInputProps) =>
   }, [normalizedTags, tagLabelsByValue]);
 
   return (
-    <label className="flex flex-col gap-1 text-sm text-slate-700">
+    <label className="flex flex-col gap-1 text-sm text-muted-foreground">
       Tags
-      <div className="rounded-md border border-slate-200 bg-white p-2">
+      <div className="rounded-md border border-border bg-card p-2 shadow-sm">
         <div className="tag-filter-input-shell">
           {normalizedTags.map(tag => (
             <span
@@ -259,7 +259,7 @@ export const TagFilterInput = ({ tagIds, onTagsChange }: TagFilterInputProps) =>
             >
               <span>{tagLabel(tag)}</span>
               <button
-                className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-white/80 text-xs leading-none"
+                className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-background text-[11px] leading-none text-muted-foreground transition hover:bg-accent"
                 type="button"
                 aria-label={`Remove tag ${tagLabel(tag)}`}
                 onClick={() => removeSelectedTag(tag)}
@@ -285,20 +285,18 @@ export const TagFilterInput = ({ tagIds, onTagsChange }: TagFilterInputProps) =>
         {isSuggestionOpen ? (
           <div className="tag-filter-suggestions" role="listbox" aria-label="Tag suggestions">
             {tagsQuery.loading ? (
-              <p className="px-2 py-1 text-xs text-slate-500">Loading tags…</p>
+              <p className="px-2 py-1 text-xs text-muted-foreground">Loading tags…</p>
             ) : tagsQuery.error ? (
-              <p className="px-2 py-1 text-xs text-rose-600">Unable to load tag suggestions. You can still type new tags.</p>
+              <p className="px-2 py-1 text-xs text-destructive">Unable to load tag suggestions. You can still type new tags.</p>
             ) : noMatchesForQuery ? (
-              <p className="px-2 py-1 text-xs text-slate-500">
-                No matching tags found. Press Enter to use your typed value.
-              </p>
+              <p className="px-2 py-1 text-xs text-muted-foreground">No matching tags found.</p>
             ) : hasSuggestions ? (
               <ul className="space-y-1">
                 {suggestionList.map(item => (
                   <li key={item.id}>
                     <button
                       type="button"
-                      className="w-full rounded-sm px-2 py-1 text-left text-sm transition hover:bg-slate-100"
+                      className="w-full rounded-sm px-2 py-1 text-left text-sm text-foreground transition hover:bg-accent"
                       onMouseDown={event => handleSuggestionMouseDown(event, item)}
                       onTouchStart={event => handleSuggestionTouchStart(event, item)}
                       onClick={() => handleSuggestionPointerDown(item)}

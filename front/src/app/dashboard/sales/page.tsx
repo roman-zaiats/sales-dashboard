@@ -32,8 +32,8 @@ export const SalesPage = () => {
     <SalesPageErrorBoundary screenName="Sales list" onRetry={() => void refetch()} retryMessage="Reload list">
       <section className="space-y-5">
         <header>
-          <h2 className="text-2xl font-bold text-slate-900">Sales</h2>
-          <p className="mt-1 text-sm text-slate-600">Sales list scaffold now uses live GraphQL data.</p>
+          <h2 className="text-2xl font-semibold">Sales</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Sales list uses live GraphQL data.</p>
         </header>
 
         <SalesFilters
@@ -49,7 +49,7 @@ export const SalesPage = () => {
           onTagsChange={setTagIds}
         />
 
-        <div className="rounded-lg border border-slate-200 bg-white p-1">
+        <div className="rounded-lg border border-border bg-card p-1">
           <SalesViewToggle value={salesView} onChange={setSalesView} />
         </div>
 
@@ -68,12 +68,12 @@ export const SalesPage = () => {
           )}
         </SalesLoadingStates>
         {boardWarning && (
-          <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-sm text-amber-700" role="status">
+          <p className="rounded-md border border-destructive-soft bg-destructive-soft p-2 text-sm text-destructive-foreground" role="status">
             {boardWarning}
           </p>
         )}
 
-        <p className="text-sm text-slate-600" aria-live="polite">
+        <p className="text-sm text-muted-foreground" aria-live="polite">
           Showing {sales.length} of {totalCount} sales.
         </p>
       </section>

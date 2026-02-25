@@ -3,7 +3,11 @@ import { type HTMLAttributes, type TdHTMLAttributes, type ThHTMLAttributes, forw
 export const Table = forwardRef<HTMLTableElement, HTMLAttributes<HTMLTableElement>>(
   ({ className = '', ...props }, ref) => (
     <div className="sales-table-shell">
-      <table ref={ref} className={`sales-table ${className}`.trim()} {...props} />
+      <table
+        ref={ref}
+        className={`sales-table ${className}`.trim()}
+        {...props}
+      />
     </div>
   ),
 );
@@ -17,7 +21,7 @@ export const TableHeader = forwardRef<HTMLTableSectionElement, HTMLAttributes<HT
 TableHeader.displayName = 'TableHeader';
 
 export const TableBody = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(
-  ({ className = '', ...props }, ref) => <tbody ref={ref} className={`bg-white ${className}`.trim()} {...props} />,
+  ({ className = '', ...props }, ref) => <tbody ref={ref} className={`${className}`.trim()} {...props} />,
 );
 
 TableBody.displayName = 'TableBody';

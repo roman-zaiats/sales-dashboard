@@ -192,8 +192,8 @@ export const BoardDraggableBoard = ({ sales, onWarning }: BoardDraggableBoardPro
   ) : null;
 
   return (
-    <div className="space-y-4">
-      {warningMessage ? <p className="text-sm text-amber-700">{warningMessage}</p> : null}
+      <div className="space-y-4">
+      {warningMessage ? <p className="text-sm text-destructive">{warningMessage}</p> : null}
       <DndContext
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
@@ -205,7 +205,7 @@ export const BoardDraggableBoard = ({ sales, onWarning }: BoardDraggableBoardPro
           {SALE_BOARD_COLUMNS.map(status => (
             <BoardColumn key={status} status={status} isOver={Boolean(droppableStatuses[status])}>
               {salesByStatus[status]?.length === 0 ? (
-                <li key={`${status}-empty`} className="text-sm text-slate-500">
+                <li key={`${status}-empty`} className="text-sm text-muted-foreground">
                   No items
                 </li>
               ) : (

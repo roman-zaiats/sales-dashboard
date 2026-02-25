@@ -7,6 +7,7 @@ import { FilledBySelector } from '@/components/sales/FilledBySelector';
 import { SaleEditableFields } from '@/components/sales/SaleEditableFields';
 import { SalesLoadingStates } from '@/components/sales/SalesLoadingStates';
 import { SaleTags } from '@/components/sales/SaleTags';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { detectSaleUpdateStaleness, SALE_STALE_EDIT_WARNING, useSaleDetailMutations } from '@/store/sales/sale-detail.mutations';
 import { useSaleDetailStore } from '@/store/sales/sale-detail.store';
 import { type SaleStatus, useSaleByIdQuery } from '@/generated/graphql';
@@ -215,11 +216,11 @@ export const SaleDetailPage = () => {
   };
 
   if (!id) {
-    return (
+        return (
       <SalesPageErrorBoundary screenName="Sale details" onRetry={() => {}}>
         <section>
-          <h2 className="mb-4 text-2xl font-bold text-slate-900">Sale Details</h2>
-          <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800" role="alert">
+          <h2 className="mb-4 text-2xl font-semibold">Sale Details</h2>
+          <p className="rounded-lg border border-destructive/40 bg-destructive-soft p-4 text-sm text-destructive-foreground" role="alert">
             Missing sale identifier in route.
           </p>
         </section>
@@ -236,13 +237,13 @@ export const SaleDetailPage = () => {
       <section className="space-y-5">
         <Link
           to="/dashboard/sales"
-          className="inline-flex text-sm font-semibold text-sky-700 transition hover:text-sky-900 hover:underline"
+          className="inline-flex text-sm font-semibold text-primary transition hover:text-foreground hover:underline"
         >
           ← Back to Sales
         </Link>
 
         <header>
-          <h2 className="text-2xl font-bold text-slate-900">Sale Details</h2>
+          <h2 className="text-2xl font-semibold">Sale Details</h2>
         </header>
 
         <SalesLoadingStates
@@ -254,62 +255,67 @@ export const SaleDetailPage = () => {
           onRetry={() => void query.refetch()}
         >
           {sale ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-semibold text-slate-900">{sale.externalSaleId}</h3>
-                  <p className="mt-1 text-sm text-slate-500">{saleDisplayLabel(sale)}</p>
+            <Card>
+              <CardHeader className="space-y-0">
+                <h3 className="text-lg font-semibold">{sale.externalSaleId}</h3>
+                <p className="text-sm text-muted-foreground">{saleDisplayLabel(sale)}</p>
+              </CardHeader>
+              <CardContent className="px-5">
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                  <div />
+                  <div className="text-sm text-muted-foreground">
+                    <p>Created: {formatDate(sale.createdAt)}</p>
+                    <p>Updated: {formatDate(sale.updatedAt)}</p>
+                  </div>
                 </div>
-                <div className="text-sm text-slate-600">
-                  <p>Created: {formatDate(sale.createdAt)}</p>
-                  <p>Updated: {formatDate(sale.updatedAt)}</p>
+
+                {saveMessage ? (
+                  <p className="mb-3 rounded-md border border-secondary bg-secondary p-2 text-sm text-secondary-foreground">{saveMessage}</p>
+                ) : null}
+                {editMessage ? (
+                  <p className="mb-3 rounded-md border border-destructive/40 bg-destructive-soft p-2 text-sm text-destructive-foreground">
+                    {editMessage}
+                  </p>
+                ) : null}
+
+                <ul className="grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
+                  <li><strong className="text-foreground">Status:</strong> {sale.status}</li>
+                  <li><strong className="text-foreground">Problem:</strong> {sale.problemReason || '—'}</li>
+                  <li><strong className="text-foreground">Delay At:</strong> {formatDate(sale.deliveryDelayAt)}</li>
+                  <li><strong className="text-foreground">Owner:</strong> {sale.filledBy?.fullName || '—'}</li>
+                </ul>
+
+                <div className="mt-6 grid gap-4 lg:grid-cols-2">
+                  <SaleEditableFields sale={sale} isSubmitting={isBusy} onSubmit={handleOperationalSubmit} />
+
+                  <div className="space-y-4">
+                    <FilledBySelector
+                      sale={sale}
+                      users={store.users}
+                      onAssignOwner={handleOwnerAssign}
+                      isSubmitting={isBusy}
+                      disabled={store.users.length === 0}
+                    />
+                    <SaleTags
+                      sale={sale}
+                      onAddTag={handleTagAdd}
+                      onRemoveTag={handleTagRemove}
+                      isSubmitting={isBusy}
+                      disabled={isBusy}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {saveMessage ? (
-                <p className="mb-3 rounded-md border border-slate-100 bg-slate-50 p-2 text-sm text-slate-700">{saveMessage}</p>
-              ) : null}
-              {editMessage ? (
-                <p className="mb-3 rounded-md border border-rose-100 bg-rose-50 p-2 text-sm text-rose-700">{editMessage}</p>
-              ) : null}
+                <h4 className="mt-6 mb-2 text-base font-semibold">Source Payload</h4>
+                <pre className="overflow-x-auto rounded-lg border border-border bg-muted p-3 text-xs text-muted-foreground">
+                  {formatPayload(sale.sourcePayload)}
+                </pre>
 
-              <ul className="grid gap-3 text-sm text-slate-700 md:grid-cols-2">
-                <li><strong className="text-slate-500">Status:</strong> {sale.status}</li>
-                <li><strong className="text-slate-500">Problem:</strong> {sale.problemReason || '—'}</li>
-                <li><strong className="text-slate-500">Delay At:</strong> {formatDate(sale.deliveryDelayAt)}</li>
-                <li><strong className="text-slate-500">Owner:</strong> {sale.filledBy?.fullName || '—'}</li>
-              </ul>
-
-              <div className="mt-6 grid gap-4 lg:grid-cols-2">
-                <SaleEditableFields sale={sale} isSubmitting={isBusy} onSubmit={handleOperationalSubmit} />
-
-                <div className="space-y-4">
-                  <FilledBySelector
-                    sale={sale}
-                    users={store.users}
-                    onAssignOwner={handleOwnerAssign}
-                    isSubmitting={isBusy}
-                    disabled={store.users.length === 0}
-                  />
-                  <SaleTags
-                    sale={sale}
-                    onAddTag={handleTagAdd}
-                    onRemoveTag={handleTagRemove}
-                    isSubmitting={isBusy}
-                    disabled={isBusy}
-                  />
+                <div className="mt-6">
+                  <SaleComments comments={sale.comments} onAddComment={handleCommentAdd} isSubmitting={isBusy} />
                 </div>
-              </div>
-
-              <h4 className="mt-6 mb-2 text-base font-semibold text-slate-800">Source Payload</h4>
-              <pre className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
-                {formatPayload(sale.sourcePayload)}
-              </pre>
-
-              <div className="mt-6">
-                <SaleComments comments={sale.comments} onAddComment={handleCommentAdd} isSubmitting={isBusy} />
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ) : null}
         </SalesLoadingStates>
       </section>

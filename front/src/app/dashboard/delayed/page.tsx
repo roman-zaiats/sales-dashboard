@@ -23,8 +23,8 @@ export const DelayedSalesPage = () => {
     <SalesPageErrorBoundary screenName="Delayed sales" onRetry={() => void refetch()} retryMessage="Reload delayed list">
       <section className="space-y-5">
         <header>
-          <h2 className="text-2xl font-bold text-slate-900">Delayed Sales</h2>
-          <p className="mt-1 text-sm text-slate-600">Delayed sales are shown first by earliest delivery delay.</p>
+          <h2 className="text-2xl font-semibold">Delayed Sales</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Delayed sales are shown first by earliest delivery delay.</p>
         </header>
 
         <SalesFilters
@@ -52,7 +52,7 @@ export const DelayedSalesPage = () => {
           <DelayedSalesTable sales={sales} />
         </SalesLoadingStates>
 
-        <p className="text-sm text-slate-600" aria-live="polite">
+        <p className="text-sm text-muted-foreground" aria-live="polite">
           Showing {sales.length} of {totalCount} delayed sales.
         </p>
       </section>

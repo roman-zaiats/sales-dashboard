@@ -19,24 +19,21 @@ const formatDelay = (value: string | null | undefined): string => {
 
 export const SaleBoardCard = forwardRef<HTMLLIElement, SaleBoardCardProps>(
   ({ sale, className = '', ...liProps }, ref) => {
-    const combinedClassName = `sales-board-card ${className}`.trim();
+    const combinedClassName = `shadcn-card p-0 ${className}`.trim();
 
     return (
       <li ref={ref} className={combinedClassName} {...liProps}>
-        <Card>
-          <CardHeader>
-            <CardTitle>{sale.externalSaleId}</CardTitle>
-            <CardDescription>{saleDisplayLabel(sale)}</CardDescription>
+        <Card className="shadcn-card">
+            <CardHeader className="shadcn-card-header">
+            <CardTitle className="shadcn-card-title">{sale.externalSaleId}</CardTitle>
+            <CardDescription className="shadcn-card-description">{saleDisplayLabel(sale)}</CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="mt-1 text-xs text-slate-500">Delay: {formatDelay(sale.deliveryDelayAt)}</p>
-            <p className="mt-1 text-xs text-slate-500">Problem: {sale.problemReason || '—'}</p>
+          <CardContent className="px-4 py-2">
+            <p className="text-xs text-muted-foreground">Delay: {formatDelay(sale.deliveryDelayAt)}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Problem: {sale.problemReason || '—'}</p>
           </CardContent>
-          <CardFooter>
-            <Link
-              className="inline-flex text-sm font-semibold text-sky-700 hover:text-sky-900"
-              to={`/dashboard/sale/${sale.id}`}
-            >
+          <CardFooter className="shadcn-card-footer">
+            <Link className="text-sm font-medium text-primary hover:text-foreground" to={`/dashboard/sale/${sale.id}`}>
               Open
             </Link>
           </CardFooter>
