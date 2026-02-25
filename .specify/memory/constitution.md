@@ -1,50 +1,48 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Sales Dashboard Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Phase Verification Gate
+Before marking any development phase complete, the project MUST run and pass the required verification pipeline: TypeScript build for back end, back-end tests, and front-end build (or equivalent typecheck plus build). The next phase cannot start until this phase passes.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. GraphQL Contract Ownership
+`back/schema.graphql` is the source of truth for GraphQL contract definitions. Front-end TypeScript GraphQL types must always be regenerated from this schema via `front/npm run codegen:graphql` and should not be hand-edited.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Unified Runtime Topology
+The application runs as a single Node/Nest.js back-end process. Separate leader/worker runtime roles are not retained.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. ORM Transition Discipline
+Data-access logic for sales-related persistence should move from ad-hoc raw-query layers toward a consistent ORM-style data access approach, with migration steps tracked and tested per phase.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. ShadCN UI Standard
+When adding or refactoring UI, components from the local `front/src/components/ui` primitives and patterns should be preferred. Layout and navigation should avoid the default browser styling patterns.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### VI. Sandbox-First Network Behavior
+All development work is executed by Codex inside a sandboxed environment. If external network access fails for reasons outside the code (for example, DNS resolution failures), do not over-engineer fallbacks; pause the work and request human assistance to provide/repair network access.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+When external dependency fetches, schema/doc lookups, or package resolution are blocked by sandbox network issues, the agent must:
+1. Record the failed operation and error.
+2. Escalate immediately to a human for temporary or permanent internet access.
+3. Resume only after access is restored.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### Phase Quality Gate
+Each phase must complete the phase verification pipeline in this order:
+
+1. Back-end TypeScript verification: `npm run build` in `back/`
+2. Back-end tests: `npm run test` in `back/`
+3. Front-end type/build verification: `npm run typecheck` and `npm run build` in `front/`
+
+Phases that do not satisfy all items must be treated as failed and corrected before moving forward.
+
+### Change Tracking
+Constitution principles and repository defaults should be updated when architecture or validation gates change.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- This constitution is authoritative for work scope and quality.
+- Changes to governance must update the version and the phase checks.
+- The standard for this phase-aware workstream is: verify and resolve each gate before continuing.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.1.0 | **Ratified**: 2026-02-24 | **Last Amended**: 2026-02-25
