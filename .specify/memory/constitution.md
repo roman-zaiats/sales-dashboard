@@ -5,6 +5,12 @@
 ### I. Phase Verification Gate
 Before marking any development phase complete, the project MUST run and pass the required verification pipeline: TypeScript build for back end, back-end tests, and front-end build (or equivalent typecheck plus build). The next phase cannot start until this phase passes.
 
+This gate must be executed at the end of every phase using:
+
+```sh
+./scripts/phase-gate.sh
+```
+
 ### II. GraphQL Contract Ownership
 `back/schema.graphql` is the source of truth for GraphQL contract definitions. Front-end TypeScript GraphQL types must always be regenerated from this schema via `front/npm run codegen:graphql` and should not be hand-edited.
 
@@ -34,6 +40,7 @@ Each phase must complete the phase verification pipeline in this order:
 2. Back-end tests: `npm run test` in `back/`
 3. Front-end type/build verification: `npm run typecheck` and `npm run build` in `front/`
 
+Do not mark a phase as complete until this gate passes with exit code 0.
 Phases that do not satisfy all items must be treated as failed and corrected before moving forward.
 
 ### Change Tracking
@@ -45,4 +52,4 @@ Constitution principles and repository defaults should be updated when architect
 - Changes to governance must update the version and the phase checks.
 - The standard for this phase-aware workstream is: verify and resolve each gate before continuing.
 
-**Version**: 1.1.0 | **Ratified**: 2026-02-24 | **Last Amended**: 2026-02-25
+**Version**: 1.2.0 | **Ratified**: 2026-02-24 | **Last Amended**: 2026-02-25

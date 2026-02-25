@@ -9,14 +9,18 @@
 - **[P]**: Can run in parallel (different files, no dependencies)
 - **[USx]**: Task belongs to user story x
 
+## Phase Quality Guardrail
+
+- [X] PT-GATE Execute `./scripts/phase-gate.sh` at the end of each phase before marking phase tasks as completed.
+
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Copy ESLint configuration from template project into backend: `reference/real-spec/back/eslint.config.mjs` -> `back/eslint.config.mjs` (create if missing)
-- [ ] T002 [P] Align frontend lint config baseline to backend style and repo tooling in `front/package.json` scripts
-- [ ] T003 [P] Add/verify `front/eslint.config.mjs` and/or `.eslintrc` path expected by workspace tooling
-- [ ] T004 [P] Add `back/drizzle.config.ts` and baseline `drizzle.config.ts` script assumptions in `back/package.json`
-- [ ] T005 Add `back/src/db` directory for shared DB wiring
-- [ ] T006 Add `front/src/lib/sort` utility folder for DnD/drag ordering helpers in `front/src/lib`
+- [X] T001 Copy ESLint configuration from template project into backend: `reference/real-spec/back/eslint.config.mjs` -> `back/eslint.config.mjs` (create if missing)
+- [X] T002 [P] Align frontend lint config baseline to backend style and repo tooling in `front/package.json` scripts
+- [X] T003 [P] Add/verify `front/eslint.config.mjs` and/or `.eslintrc` path expected by workspace tooling
+- [X] T004 [P] Add `back/drizzle.config.ts` and baseline `drizzle.config.ts` script assumptions in `back/package.json`
+- [X] T005 Add `back/src/db` directory for shared DB wiring
+- [X] T006 Add `front/src/lib/sort` utility folder for DnD/drag ordering helpers in `front/src/lib`
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 

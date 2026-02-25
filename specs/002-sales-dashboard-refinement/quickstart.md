@@ -35,6 +35,10 @@ Backend required values include the operational database credentials used by Nes
 4. Frontend build:
    - `cd front && npm run build`
 
+Shortcut:
+
+- `./scripts/phase-gate.sh`
+
 ## Development mode
 
 1. Start backend in unified app mode:
