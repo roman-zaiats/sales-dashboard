@@ -5,7 +5,7 @@
   "scripts": {
     "build": "nest build",
     "import:sales": "pnpm exec ts-node -P tsconfig.json src/main-import.ts",
-    "back:start": "nest start",
+    "start": "nest start",
     "start:dev": "nest start --watch",
     "codegen:graphql": "graphql-codegen --config codegen.yml",
     "prettier": "prettier --write \"src/**/*.ts\"",
