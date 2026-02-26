@@ -42,4 +42,11 @@ tests/
 - 002-sales-operations-dashboard: Refined to a single-process dashboard runtime and removed leader/worker launch-mode requirements.
 
 <!-- MANUAL ADDITIONS START -->
+
+## Shadcn UI workflow
+
+- Do not hand-edit files under `front/src/components/ui`.
+- For all Shadcn UI building blocks (buttons, card, table, sidebar, etc.), install/update through Shadcn CLI:
+  - `pnpm dlx shadcn@latest add <component-name>`
+- Do not copy component implementations from reference repos. Use the installed Shadcn version directly.
 <!-- MANUAL ADDITIONS END -->
