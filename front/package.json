@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "vite",
+    "front:dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "eslint": "eslint \"src/**/*.{ts,tsx}\"",
-    "eslint:check": "npm run eslint",
-    "eslint:fix": "npm run eslint -- --fix",
+    "eslint:check": "pnpm run eslint",
+    "eslint:fix": "pnpm run eslint -- --fix",
     "codegen:graphql": "graphql-codegen --config codegen.yml"
   },
   "dependencies": {

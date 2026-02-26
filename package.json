@@ -1,0 +1,19 @@
+{
+  "name": "sales-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "back",
+    "front"
+  ],
+  "scripts": {
+    "all:install": "pnpm --dir back install && pnpm --dir front install",
+    "build": "pnpm --filter back build && pnpm --filter front build",
+    "codegen:graphql": "pnpm --filter back codegen:graphql && pnpm --filter front codegen:graphql",
+    "all:eslint:check": "pnpm --filter back eslint:check && pnpm --filter front eslint:check"
+  },
+  "devDependencies": {
+    "pnpm": "^9.15.2"
+  },
+  "packageManager": "pnpm@9.15.2"
+}
