@@ -64,7 +64,7 @@ export const useSalesListStore = () => {
     [filter, sortDirection, sortField, skip],
   );
 
-  const query = useSalesListQuery({ variables, fetchPolicy: 'cache-and-network' });
+  const query = useSalesListQuery({ variables, fetchPolicy: 'network-only' });
 
   const resetPagination = () => {
     setSkip(0);

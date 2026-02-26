@@ -68,7 +68,7 @@ export const SaleTags = ({ sale, onAddTag, onRemoveTag, isSubmitting, disabled }
         <Button
           type="button"
           variant="secondary"
-          size="md"
+          size="default"
           onClick={() => void submitTag()}
           disabled={isSubmitting || disabled || !newTag.trim()}
         >

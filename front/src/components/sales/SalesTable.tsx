@@ -23,19 +23,20 @@ const formatDelay = (date: string | null | undefined): string => {
 
 export const SalesTable = ({ sales }: SalesTableProps) => {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Identifier</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Created</TableHead>
-          <TableHead>Delay</TableHead>
-          <TableHead>Problem</TableHead>
-          <TableHead>Tags</TableHead>
-          <TableHead>Owner</TableHead>
-          <TableHead>Open</TableHead>
-        </TableRow>
-      </TableHeader>
+    <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Identifier</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Created</TableHead>
+            <TableHead>Delay</TableHead>
+            <TableHead>Problem</TableHead>
+            <TableHead>Tags</TableHead>
+            <TableHead>Owner</TableHead>
+            <TableHead>Open</TableHead>
+          </TableRow>
+        </TableHeader>
         <TableBody>
           {sales.length === 0 ? (
             <TableRow>
@@ -44,14 +45,14 @@ export const SalesTable = ({ sales }: SalesTableProps) => {
               </TableCell>
             </TableRow>
           ) : (
-            sales.map(sale => (
-              <TableRow key={sale.id} className="sales-table-row">
+            sales.map((sale) => (
+              <TableRow key={sale.id}>
                 <TableCell>{saleDisplayLabel(sale)}</TableCell>
                 <TableCell>{sale.status}</TableCell>
                 <TableCell>{new Date(sale.createdAt).toLocaleString()}</TableCell>
                 <TableCell>{formatDelay(sale.deliveryDelayAt)}</TableCell>
                 <TableCell>{sale.problemReason || '—'}</TableCell>
-                <TableCell>{sale.dashboardTags.map(tag => tag.name).join(', ') || '—'}</TableCell>
+                <TableCell>{sale.dashboardTags.map((tag) => tag.name).join(', ') || '—'}</TableCell>
                 <TableCell>{sale.filledBy?.fullName || '—'}</TableCell>
                 <TableCell>
                   <Link className="text-primary hover:text-foreground" to={`/dashboard/sale/${sale.id}`}>
@@ -61,7 +62,8 @@ export const SalesTable = ({ sales }: SalesTableProps) => {
               </TableRow>
             ))
           )}
-      </TableBody>
-    </Table>
+        </TableBody>
+      </Table>
+    </div>
   );
 };

@@ -61,20 +61,21 @@ export const DelayedSalesTable = ({ sales }: DelayedSalesTableProps) => {
   const sorted = sortByUrgency(sales);
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Identifier</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Due</TableHead>
-          <TableHead>Urgency</TableHead>
-          <TableHead>Problem</TableHead>
-          <TableHead>Tags</TableHead>
-          <TableHead>Owner</TableHead>
-          <TableHead>Open</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Identifier</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Due</TableHead>
+            <TableHead>Urgency</TableHead>
+            <TableHead>Problem</TableHead>
+            <TableHead>Tags</TableHead>
+            <TableHead>Owner</TableHead>
+            <TableHead>Open</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {sorted.length === 0 ? (
             <TableRow>
               <TableCell className="text-muted-foreground" colSpan={8}>
@@ -82,13 +83,13 @@ export const DelayedSalesTable = ({ sales }: DelayedSalesTableProps) => {
               </TableCell>
             </TableRow>
           ) : (
-            sorted.map(sale => (
+            sorted.map((sale) => (
               <TableRow
                 key={sale.id}
                 className={
                   isOverdue(sale.deliveryDelayAt)
-                    ? 'sales-table-row sales-table-row-overdue'
-                    : 'sales-table-row'
+                    ? 'sales-table-row-overdue'
+                    : undefined
                 }
               >
                 <TableCell>{saleDisplayLabel(sale)}</TableCell>
@@ -98,7 +99,7 @@ export const DelayedSalesTable = ({ sales }: DelayedSalesTableProps) => {
                   <DelayedSalesBadge sale={sale} />
                 </TableCell>
                 <TableCell>{sale.problemReason || '—'}</TableCell>
-                <TableCell>{sale.dashboardTags.map(tag => tag.name).join(', ') || '—'}</TableCell>
+                <TableCell>{sale.dashboardTags.map((tag) => tag.name).join(', ') || '—'}</TableCell>
                 <TableCell>{sale.filledBy?.fullName || '—'}</TableCell>
                 <TableCell>
                   <Link className="text-primary hover:text-foreground" to={`/dashboard/sale/${sale.id}`}>
@@ -108,7 +109,8 @@ export const DelayedSalesTable = ({ sales }: DelayedSalesTableProps) => {
               </TableRow>
             ))
           )}
-      </TableBody>
-    </Table>
+        </TableBody>
+      </Table>
+    </div>
   );
 };

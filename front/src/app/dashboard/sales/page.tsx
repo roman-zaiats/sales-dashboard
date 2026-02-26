@@ -27,9 +27,12 @@ export const SalesPage = () => {
   } = useSalesListStore();
   const [salesView, setSalesView] = useState<SalesView>('table');
   const [boardWarning, setBoardWarning] = useState<string | null>(null);
+  const handleRetry = async () => {
+    await refetch();
+  };
 
   return (
-    <SalesPageErrorBoundary screenName="Sales list" onRetry={() => void refetch()} retryMessage="Reload list">
+    <SalesPageErrorBoundary screenName="Sales list" onRetry={handleRetry} retryMessage="Reload list">
       <section className="space-y-5">
         <header>
           <h2 className="text-2xl font-semibold">Sales</h2>
@@ -59,7 +62,7 @@ export const SalesPage = () => {
           hasError={Boolean(error)}
           errorMessage={error ? `Unable to load sales. ${error.message}` : undefined}
           emptyMessage="No sales found for this filter set."
-          onRetry={() => void refetch()}
+          onRetry={handleRetry}
         >
           {salesView === 'table' ? (
             <SalesTable sales={sales} />

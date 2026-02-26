@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 
 type SalesLoadingStatesProps = {
   loading: boolean;
@@ -6,7 +6,7 @@ type SalesLoadingStatesProps = {
   hasError: boolean;
   errorMessage?: string;
   emptyMessage: string;
-  onRetry: () => void;
+  onRetry: () => void | Promise<unknown>;
   children: ReactNode;
 };
 
@@ -19,16 +19,34 @@ export const SalesLoadingStates = ({
   onRetry,
   children,
 }: SalesLoadingStatesProps) => {
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  const handleRetry = async () => {
+    if (isRetrying) {
+      return;
+    }
+
+    setIsRetrying(true);
+    try {
+      await onRetry();
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
   if (hasError) {
     return (
       <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800" role="alert">
         <p>{errorMessage ?? 'Request failed. Please retry.'}</p>
         <button
-          className="mt-3 rounded-md bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
+          className="mt-3 inline-flex h-9 items-center rounded-md bg-rose-600 px-3 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-300"
           type="button"
-          onClick={onRetry}
+          onClick={() => {
+            void handleRetry();
+          }}
+          disabled={isRetrying}
         >
-          Retry
+          {isRetrying ? 'Retrying...' : 'Retry'}
         </button>
       </div>
     );
