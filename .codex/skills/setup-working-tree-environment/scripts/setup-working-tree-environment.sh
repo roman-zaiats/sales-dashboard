@@ -15,14 +15,7 @@ if [[ ! -d "$ROOT_DIR/back" || ! -d "$ROOT_DIR/front" ]]; then
 fi
 
 WORKTREE_NAME="$(basename "$ROOT_DIR")"
-SUFFIX_DIGIT="${WORKTREE_NAME: -1}"
-
-if [[ "$SUFFIX_DIGIT" =~ ^[0-9]$ ]]; then
-  SUFFIX="$SUFFIX_DIGIT"
-else
-  SUFFIX=0
-  echo "No trailing digit in '$WORKTREE_NAME'; using suffix 0."
-fi
+SUFFIX=$(( (RANDOM % 100) + 1 ))
 
 BACKEND_PORT=$((BACKEND_BASE_PORT + SUFFIX))
 FRONTEND_PORT=$((FRONTEND_BASE_PORT + SUFFIX))

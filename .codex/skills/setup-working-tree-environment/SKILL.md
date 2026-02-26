@@ -1,13 +1,13 @@
 ---
 name: setup-working-tree-environment
-description: Configure per-worktree frontend and backend ports by deriving an offset from the current working-tree folder name and writing local environment values. Use when setting up another sales-dashboard worktree that should run on unique local ports without committing changes.
+description: Configure per-worktree frontend and backend ports by applying a random offset and writing local environment values. Use when setting up another sales-dashboard worktree that should run on unique local ports without committing changes.
 ---
 
 # Setup working tree environment
 
 This skill creates/updates worktree-local environment overrides in `.env.local` files for the dashboard back-end and front-end.
 
-1. Detect the last numeric digit of the current directory name.
+1. Generate a random offset between `1` and `100`.
 2. Add that digit to default ports:
    - Backend base port `8000`
    - Frontend base port `5173`
