@@ -44,7 +44,7 @@ export const SaleDetailPage = () => {
       id: id ?? '',
     },
     skip: !id,
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'network-only',
   });
 
   const {
@@ -78,6 +78,10 @@ export const SaleDetailPage = () => {
     if (response.data?.saleById?.updatedAt) {
       setBaselineUpdatedAt(response.data.saleById.updatedAt);
     }
+  };
+
+  const handleRetry = async () => {
+    await query.refetch();
   };
 
   const handleOperationalSubmit = async (next: {
@@ -231,7 +235,7 @@ export const SaleDetailPage = () => {
   return (
     <SalesPageErrorBoundary
       screenName="Sale details"
-      onRetry={() => void query.refetch()}
+      onRetry={handleRetry}
       retryMessage="Retrying with latest sale details."
     >
       <section className="space-y-5">
@@ -252,7 +256,7 @@ export const SaleDetailPage = () => {
           hasError={Boolean(query.error)}
           errorMessage={query.error ? `Unable to load sale details. ${query.error.message}` : undefined}
           emptyMessage="Sale not found."
-          onRetry={() => void query.refetch()}
+          onRetry={handleRetry}
         >
           {sale ? (
             <Card>

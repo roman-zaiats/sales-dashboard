@@ -18,9 +18,12 @@ export const DelayedSalesPage = () => {
     setOverdueOnly,
     setTagIds,
   } = useDelayedSalesListStore();
+  const handleRetry = async () => {
+    await refetch();
+  };
 
   return (
-    <SalesPageErrorBoundary screenName="Delayed sales" onRetry={() => void refetch()} retryMessage="Reload delayed list">
+    <SalesPageErrorBoundary screenName="Delayed sales" onRetry={handleRetry} retryMessage="Reload delayed list">
       <section className="space-y-5">
         <header>
           <h2 className="text-2xl font-semibold">Delayed Sales</h2>
@@ -47,7 +50,7 @@ export const DelayedSalesPage = () => {
           hasError={Boolean(error)}
           errorMessage={error ? `Unable to load delayed sales. ${error.message}` : undefined}
           emptyMessage="No delayed sales were returned for the current filters."
-          onRetry={() => void refetch()}
+          onRetry={handleRetry}
         >
           <DelayedSalesTable sales={sales} />
         </SalesLoadingStates>

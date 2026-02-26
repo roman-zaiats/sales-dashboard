@@ -131,7 +131,7 @@ export const SaleEditableFields = ({
       </div>
 
       <div className="mt-4 flex items-center gap-3">
-        <Button type="submit" variant="default" size="md" disabled={!canSubmit}>
+        <Button type="submit" variant="default" size="default" disabled={!canSubmit}>
           {isSubmitting ? 'Saving…' : 'Save changes'}
         </Button>
         <span className="text-sm text-muted-foreground">{canSubmit ? 'Changes detected' : 'No changes to save'}</span>

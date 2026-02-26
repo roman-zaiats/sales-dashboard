@@ -59,7 +59,7 @@ export const useDelayedSalesListStore = () => {
     [filter, sortDirection, sortField, skip],
   );
 
-  const query = useDelayedSalesQuery({ variables, fetchPolicy: 'cache-and-network' });
+  const query = useDelayedSalesQuery({ variables, fetchPolicy: 'network-only' });
 
   const resetPagination = () => {
     setSkip(0);

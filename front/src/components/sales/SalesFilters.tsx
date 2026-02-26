@@ -114,7 +114,7 @@ export const SalesFilters = ({
 
       <Button
         variant="default"
-        size="md"
+        size="default"
         className="self-end"
         type="button"
         onClick={clearAllFilters}

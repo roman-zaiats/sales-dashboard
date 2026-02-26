@@ -1,10 +1,23 @@
 import { ApolloProvider } from '@apollo/client';
 import { StrictMode, type JSX } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Navigate, NavLink, Route, BrowserRouter, Routes, type To } from 'react-router-dom';
+import { Navigate, NavLink, Route, BrowserRouter, Routes, type To, useLocation } from 'react-router-dom';
 
 import { apolloClient } from '@/lib/apollo-client';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuItem } from '@/components/ui/sidebar';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from '@/components/ui/sidebar';
 import { DelayedSalesPage } from './dashboard/delayed/page';
 import { SaleDetailPage } from './dashboard/sale/page';
 import { SalesPage } from './dashboard/sales/page';
@@ -16,50 +29,101 @@ type NavLinkConfig = {
   icon: string;
 };
 
-const navLinks: NavLinkConfig[] = [
-  { to: '/dashboard/sales', label: 'Sales', icon: '🧾' },
-  { to: '/dashboard/delayed', label: 'Delayed', icon: '⏰' },
+type ExternalNavLinkConfig = {
+  href: string;
+  label: string;
+  icon: string;
+};
+
+type NavSection = {
+  title: string;
+  links: (NavLinkConfig | ExternalNavLinkConfig)[];
+};
+
+const primaryNavLinks: NavSection[] = [
+  {
+    title: 'Navigation',
+    links: [
+      { to: '/dashboard/sales', label: 'Sales', icon: '📊' },
+      { to: '/dashboard/delayed', label: 'Delayed', icon: '⏱️' },
+    ],
+  },
+  {
+    title: 'Reference',
+    links: [
+      {
+        href: 'https://github.com/satnaing/shadcn-admin',
+        label: 'Reference Dashboard',
+        icon: '🧭',
+      },
+    ],
+  },
 ];
 
-const sidebarNavClass = (isActive: boolean): string =>
-  `shadcn-sidebar-link ${
-    isActive
-      ? 'shadcn-sidebar-link-active'
-      : 'shadcn-sidebar-link-inactive'
-  }`;
-
 const SalesSidebar = () => {
+  const location = useLocation();
+
+  const isActiveLink = (to: To): boolean => {
+    const pathname = typeof to === 'string' ? to : to.pathname ?? '';
+    if (!pathname) {
+      return false;
+    }
+
+    return location.pathname === pathname || location.pathname.startsWith(`${pathname}/`);
+  };
+
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Workspace</p>
-        <h1 className="mt-2 text-lg font-semibold">Sales Operations</h1>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className='px-4 py-4'>
+        <p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground'>Workspace</p>
+        <p className='mt-2 text-xl font-semibold text-foreground'>Sales Operations</p>
       </SidebarHeader>
 
-      <SidebarContent aria-label="Sales navigation">
-        <SidebarMenu>
-          {navLinks.map(link => (
-            <SidebarMenuItem key={link.label}>
-              <NavLink
-                to={link.to}
-                className={({ isActive }) => sidebarNavClass(isActive)}
-              >
-                <span
-                  className="grid h-7 w-7 place-items-center rounded-md bg-sidebar-accent text-[14px] text-sidebar-accent-foreground"
-                  aria-hidden="true"
-                >
-                  {link.icon}
-                </span>
-                <span>{link.label}</span>
-              </NavLink>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+      <SidebarContent aria-label='Sales navigation'>
+        {primaryNavLinks.map((section) => (
+          <SidebarGroup key={section.title}>
+            <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {section.links.map((link) =>
+                  'to' in link ? (
+                    <SidebarMenuItem key={link.label}>
+                      <SidebarMenuButton asChild isActive={isActiveLink(link.to)}>
+                        <NavLink to={link.to} aria-label={`Navigate to ${link.label}`}>
+                          <span className="text-base" aria-hidden="true">
+                            {link.icon}
+                          </span>
+                          <span className="truncate">{link.label}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ) : (
+                    <SidebarMenuItem key={link.label}>
+                      <SidebarMenuButton asChild>
+                        <a
+                          href={link.href}
+                          rel="noreferrer"
+                          target="_blank"
+                          aria-label={`Open ${link.label}`}
+                        >
+                          <span className="text-base" aria-hidden="true">
+                            {link.icon}
+                          </span>
+                          <span className="truncate">{link.label}</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ),
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="rounded-md border border-sidebar bg-sidebar-accent px-3 py-2 text-xs text-sidebar-accent-foreground">
-          Operational sales triage dashboard.
+        <div className='rounded-md border border-sidebar bg-[hsl(var(--sidebar-accent)/0.45)] px-3 py-2 text-xs text-sidebar-accent-foreground'>
+          Real-time dashboard for operational sales triage.
         </div>
       </SidebarFooter>
     </Sidebar>
@@ -67,32 +131,32 @@ const SalesSidebar = () => {
 };
 
 const AppShellTopBar = () => {
-    return (
-    <header className="sticky top-0 flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-4 backdrop-blur">
-      <div className="text-sm font-semibold">Sales Operations</div>
-      <div className="text-xs text-muted-foreground">Dashboard</div>
+  return (
+    <header className='shadcn-topbar'>
+      <div className='shadcn-topbar-inner'>
+        <span className='text-sm font-semibold text-foreground'>Sales Dashboard</span>
+        <span className='text-xs text-muted-foreground'>Operations</span>
+      </div>
     </header>
   );
 };
 
 const AppFrame = (): JSX.Element => {
   return (
-    <div className="flex min-h-screen bg-muted">
+    <SidebarProvider>
       <SalesSidebar />
-      <main className="min-h-screen flex-1">
+      <SidebarInset>
         <AppShellTopBar />
-        <section className="p-6 lg:p-8">
-          <div className="mx-auto max-w-7xl">
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard/sales" replace />} />
-              <Route path="/dashboard/sales" element={<SalesPage />} />
-              <Route path="/dashboard/delayed" element={<DelayedSalesPage />} />
-              <Route path="/dashboard/sale/:id" element={<SaleDetailPage />} />
-            </Routes>
-          </div>
+        <section className="w-full flex-1 px-4 py-6 lg:px-8">
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard/sales" replace />} />
+            <Route path="/dashboard/sales" element={<SalesPage />} />
+            <Route path="/dashboard/delayed" element={<DelayedSalesPage />} />
+            <Route path="/dashboard/sale/:id" element={<SaleDetailPage />} />
+          </Routes>
         </section>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 };
 
