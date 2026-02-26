@@ -307,10 +307,6 @@ export class SalesIngestionService implements OnApplicationShutdown {
       sourceStatus: this.normalizeStatus(record.status),
       createdAt: createdAt ? createdAt.toISOString() : null,
       updatedAt: updatedAt ? updatedAt.toISOString() : null,
-      sourcePayload: {
-        raw: record,
-        sourceId: externalSaleId,
-      },
       listing: {
         sourceListingId,
         listingId: this.normalizeText(record.ticketGroupId) ?? this.normalizeText(record.listingId),

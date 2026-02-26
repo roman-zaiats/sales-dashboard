@@ -3,12 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2026-02-24
 
 ## Active Technologies
-- TypeScript (Node.js + React 19) + `@nestjs/common`, `@nestjs/graphql` (schema-first), `@apollo/server`, `@nestjs/mongoose`, `@apollo/client`, `@tanstack/react-query` (001-sales-operations-dashboard)
-- PostgreSQL for operational dashboard data + MongoDB as source-of-truth ingestion inpu (001-sales-operations-dashboard)
 - TypeScript (Node.js + React 19) + `@nestjs/common`, `@nestjs/graphql` (schema-first), `@apollo/server`, `drizzle-orm`, `@apollo/client` (003-remove-sale-source-fields)
 - PostgreSQL for persisted sales/listings, MongoDB for ingestion source inpu (003-remove-sale-source-fields)
-
-- (001-sales-operations-dashboard)
 
 ## Project Structure
 

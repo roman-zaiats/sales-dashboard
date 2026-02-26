@@ -45,13 +45,7 @@ export class SalesImportService {
         continue;
       }
 
-      mappedRows.push({
-        ...mapped,
-        sourcePayload: {
-          sourceId: mapped.externalSaleId,
-          raw: row,
-        },
-      });
+      mappedRows.push(mapped);
     }
 
     const result = await this.salesRepository.upsertSalesFromSource(mappedRows, sourceSyncState);
@@ -133,7 +127,7 @@ export class SalesImportService {
     throw new Error(`Could not extract records array from backup file: ${filePath}`);
   }
 
-  private mapMongoRecord(record: UnknownRecord): Omit<SaleSourceRecord, 'sourcePayload'> | null {
+  private mapMongoRecord(record: UnknownRecord): SaleSourceRecord | null {
     const externalSaleId = this.extractExternalSaleId(record._id);
 
     if (!externalSaleId) {
@@ -186,10 +180,6 @@ export class SalesImportService {
         ticketTypeName: this.normalizeText(record.ticketTypeName),
         venueName: this.normalizeText(record.venueName),
         fees: this.normalizeFees(record.fees),
-        sourcePayload: {
-          sourceId: listingSourceId,
-          raw: record,
-        },
       },
     };
   }

@@ -83,14 +83,12 @@ export type Listing = {
     description?: string | null;
     amount?: string | number | null;
   }> | null;
-  sourcePayload?: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
 };
 
 export type Sale = {
   id: string;
-  externalSaleId: string;
   buyerEmail?: string | null;
   listing?: Listing | null;
   status: SaleStatus;

@@ -188,7 +188,9 @@ export const BoardDraggableBoard = ({ sales, onWarning }: BoardDraggableBoardPro
   };
 
   const overlay = activeSale ? (
-    <div className="sales-board-card sales-board-card-overlay">Moving {activeSale.externalSaleId}</div>
+    <div className="sales-board-card sales-board-card-overlay">
+      Moving {activeSale.listing?.listingId ?? activeSale.id}
+    </div>
   ) : null;
 
   return (

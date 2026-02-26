@@ -50,7 +50,7 @@ const sortByUrgency = (sales: Sale[]): Sale[] => {
     const rightDelay = right.deliveryDelayAt ? Date.parse(right.deliveryDelayAt) : Number.POSITIVE_INFINITY;
 
     if (leftDelay === rightDelay) {
-      return left.externalSaleId.localeCompare(right.externalSaleId);
+      return saleDisplayLabel(left).localeCompare(saleDisplayLabel(right));
     }
 
     return leftDelay - rightDelay;

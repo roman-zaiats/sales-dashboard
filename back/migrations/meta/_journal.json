@@ -15,6 +15,13 @@
       "when": 1772015778790,
       "tag": "0001_melodic_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772115941703,
+      "tag": "0002_whole_solo",
+      "breakpoints": true
     }
   ]
 }

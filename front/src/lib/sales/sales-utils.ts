@@ -5,7 +5,7 @@ import type { Sale } from '@/store/sales/types';
 export const isSaleDelayed = (sale: Pick<Sale, 'deliveryDelayAt'>): boolean =>
   Boolean(sale.deliveryDelayAt && isPast(parseISO(sale.deliveryDelayAt)));
 
-export const saleDisplayLabel = (sale: Pick<Sale, 'externalSaleId' | 'listing'>): string => {
+export const saleDisplayLabel = (sale: Pick<Sale, 'id' | 'listing'>): string => {
   if (sale.listing?.listingId) {
     return sale.listing.listingId;
   }
@@ -14,7 +14,7 @@ export const saleDisplayLabel = (sale: Pick<Sale, 'externalSaleId' | 'listing'>)
     return sale.listing.eventId;
   }
 
-  return sale.externalSaleId;
+  return sale.id;
 };
 
 export const saleChipText = (sale: Pick<Sale, 'status' | 'deliveryDelayAt'>): string => {

@@ -3,9 +3,7 @@ import { integer, jsonb, numeric, pgTable, primaryKey, text, timestamp, uuid } f
 
 export const sales = pgTable('sales', {
   id: uuid('id').primaryKey().defaultRandom(),
-  externalSaleId: text('external_sale_id').notNull().unique(),
   buyerEmail: text('buyer_email'),
-  sourcePayload: jsonb('source_payload').$type<Record<string, unknown> | null>(),
   status: text('status').notNull(),
   deliveryDelayAt: timestamp('delivery_delay_at', { withTimezone: true }),
   problemReason: text('problem_reason'),
@@ -64,7 +62,6 @@ export const listings = pgTable('listings', {
     description?: string | null;
     amount?: string | number | null;
   }> | null>(),
-  sourcePayload: jsonb('source_payload').$type<Record<string, unknown> | null>(),
   createdAt: timestamp('created_at', { withTimezone: true })
     .default(sql`NOW()`)
     .notNull(),

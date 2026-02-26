@@ -25,7 +25,6 @@ import { salesSchemaSql } from './sales-schema';
 type SaleQueryRow = {
   sale: {
     id: string;
-    externalSaleId: string;
     buyerEmail: string | null;
     status: string;
     deliveryDelayAt: string | Date | null;
@@ -33,7 +32,6 @@ type SaleQueryRow = {
     filledByUserId: string | null;
     createdAt: string | Date;
     updatedAt: string | Date;
-    sourcePayload: Record<string, unknown> | null;
   };
   listing: {
     id: string | null;
@@ -73,7 +71,6 @@ type SaleQueryRow = {
     venueName: string | null;
     tags: string[] | null;
     fees: ListingFee[] | null;
-    sourcePayload: Record<string, unknown> | null;
     createdAt: string | Date | null;
     updatedAt: string | Date | null;
   } | null;
@@ -114,7 +111,6 @@ export class SalesRepository {
         .select({
           sale: {
             id: sales.id,
-            externalSaleId: sales.externalSaleId,
             buyerEmail: sales.buyerEmail,
             status: sales.status,
             deliveryDelayAt: sales.deliveryDelayAt,
@@ -122,7 +118,6 @@ export class SalesRepository {
             filledByUserId: sales.filledByUserId,
             createdAt: sales.createdAt,
             updatedAt: sales.updatedAt,
-            sourcePayload: sales.sourcePayload,
           },
           listing: {
             id: listings.id,
@@ -162,7 +157,6 @@ export class SalesRepository {
             venueName: listings.venueName,
             tags: listings.tags,
             fees: listings.fees,
-            sourcePayload: listings.sourcePayload,
             createdAt: listings.createdAt,
             updatedAt: listings.updatedAt,
           },
@@ -365,7 +359,6 @@ export class SalesRepository {
       .select({
         sale: {
           id: sales.id,
-          externalSaleId: sales.externalSaleId,
           buyerEmail: sales.buyerEmail,
           status: sales.status,
           deliveryDelayAt: sales.deliveryDelayAt,
@@ -373,7 +366,6 @@ export class SalesRepository {
           filledByUserId: sales.filledByUserId,
           createdAt: sales.createdAt,
           updatedAt: sales.updatedAt,
-          sourcePayload: sales.sourcePayload,
         },
         listing: {
           id: listings.id,
@@ -413,7 +405,6 @@ export class SalesRepository {
           venueName: listings.venueName,
           tags: listings.tags,
           fees: listings.fees,
-          sourcePayload: listings.sourcePayload,
           createdAt: listings.createdAt,
           updatedAt: listings.updatedAt,
         },
@@ -533,8 +524,16 @@ export class SalesRepository {
     await this.initializeSchema();
 
     const uniqueRecords = Array.from(new Map(records.map(record => [record.externalSaleId, record])).values());
+    const dedupedBySource = Array.from(
+      new Map(
+        uniqueRecords.map(record => [record.listing.sourceListingId ?? record.externalSaleId, record]),
+      ).entries(),
+    ).map(([sourceListingId, record]) => ({
+      sourceListingId,
+      record,
+    }));
 
-    if (uniqueRecords.length === 0) {
+    if (dedupedBySource.length === 0) {
       return { insertedCount: 0, updatedCount: 0, processedCount: 0 };
     }
 
@@ -543,172 +542,188 @@ export class SalesRepository {
     let updatedCount = 0;
 
     await this.db.transaction(async tx => {
-      for (let i = 0; i < uniqueRecords.length; i += batchSize) {
-        const batch = uniqueRecords.slice(i, i + batchSize);
-        const batchExternalIds = batch.map(record => record.externalSaleId);
+      for (let i = 0; i < dedupedBySource.length; i += batchSize) {
+        const batch = dedupedBySource.slice(i, i + batchSize);
+        const sourceListingIds = batch.map(item => item.sourceListingId);
         const existingRows = await tx
-          .select({ externalSaleId: sales.externalSaleId })
-          .from(sales)
-          .where(inArray(sales.externalSaleId, batchExternalIds));
-        const batchExistingIds = new Set(existingRows.map(row => row.externalSaleId));
-
-        insertedCount += batch.length - batchExistingIds.size;
-        updatedCount += batchExistingIds.size;
-
-        const upsertedSales = await tx
-          .insert(sales)
-          .values(
-            batch.map(record => ({
-              externalSaleId: record.externalSaleId,
-              buyerEmail: record.buyerEmail,
-              status: record.sourceStatus ?? SaleStatus.RECEIVED,
-              createdAt: this.parseDateField(record.createdAt) ?? new Date(),
-              updatedAt: this.parseDateField(record.updatedAt) ?? new Date(),
-              sourcePayload: record.sourcePayload,
-              sourceSyncState,
-            })),
-          )
-          .onConflictDoUpdate({
-            target: sales.externalSaleId,
-            set: {
-              buyerEmail: sql`EXCLUDED.buyer_email`,
-              sourcePayload: sql`EXCLUDED.source_payload`,
-              sourceSyncState: sql`EXCLUDED.source_sync_state`,
-              status: sales.status,
-              deliveryDelayAt: sales.deliveryDelayAt,
-              problemReason: sales.problemReason,
-              filledByUserId: sales.filledByUserId,
-              updatedAt: new Date(),
-            },
+          .select({
+            saleId: listings.saleId,
+            sourceListingId: listings.sourceListingId,
           })
-          .returning({
-            id: sales.id,
-            externalSaleId: sales.externalSaleId,
-          });
+          .from(listings)
+          .where(inArray(listings.sourceListingId, sourceListingIds));
 
-        const saleIdByExternal = new Map<string, string>(upsertedSales.map(row => [row.externalSaleId, row.id]));
+        const saleIdBySourceListing = new Map<string, string>(
+          existingRows.map(row => [row.sourceListingId, row.saleId]),
+        );
 
-        if (upsertedSales.length === 0) {
-          continue;
+        const recordsToInsert = batch.filter(item => !saleIdBySourceListing.has(item.sourceListingId));
+        const recordsToUpdate = batch.filter(item => saleIdBySourceListing.has(item.sourceListingId));
+
+        insertedCount += recordsToInsert.length;
+        updatedCount += recordsToUpdate.length;
+
+        for (const item of recordsToUpdate) {
+          const saleId = saleIdBySourceListing.get(item.sourceListingId);
+
+          if (!saleId) {
+            continue;
+          }
+
+          await tx
+            .update(sales)
+            .set({
+              buyerEmail: item.record.buyerEmail,
+              sourceSyncState,
+              updatedAt: new Date(),
+            })
+            .where(eq(sales.id, saleId));
         }
 
-        await tx
-          .insert(listings)
-          .values(
-            batch
-              .map(record => {
-                const saleId = saleIdByExternal.get(record.externalSaleId);
+        const insertedSales = recordsToInsert.length
+          ? await tx
+              .insert(sales)
+              .values(
+                recordsToInsert.map(item => ({
+                  buyerEmail: item.record.buyerEmail,
+                  status: item.record.sourceStatus ?? SaleStatus.RECEIVED,
+                  createdAt: this.parseDateField(item.record.createdAt) ?? new Date(),
+                  updatedAt: this.parseDateField(item.record.updatedAt) ?? new Date(),
+                  sourceSyncState,
+                })),
+              )
+              .returning({ id: sales.id })
+          : [];
 
-                if (!saleId) {
-                  return null;
-                }
+        if (insertedSales.length > 0) {
+          for (let index = 0; index < insertedSales.length; index += 1) {
+            const saleId = insertedSales[index]?.id;
+            const sourceListingId = recordsToInsert[index]?.sourceListingId;
 
-                let listingCreatedAt = this.parseDateField(record.listing.creationDate);
+            if (saleId && sourceListingId) {
+              saleIdBySourceListing.set(sourceListingId, saleId);
+            }
+          }
+        }
 
-                if (!listingCreatedAt) {
-                  listingCreatedAt = this.parseDateField(record.createdAt);
-                }
+        const rows = batch
+          .map(item => {
+            const saleId = saleIdBySourceListing.get(item.sourceListingId);
 
-                if (!listingCreatedAt) {
-                  listingCreatedAt = new Date();
-                }
+            if (!saleId) {
+              return null;
+            }
 
-                const listingUpdatedAt =
-                  this.parseDateField(record.listing.statusChangeDate) ??
-                  this.parseDateField(record.updatedAt) ??
-                  new Date();
+            const record = item.record;
+            let listingCreatedAt = this.parseDateField(record.listing.creationDate);
 
-                return {
-                  saleId,
-                  sourceListingId: record.listing.sourceListingId ?? record.externalSaleId,
-                  listingId: record.listing.listingId,
-                  adviceIndex: record.listing.adviceIndex,
-                  area: record.listing.area,
-                  assignedPos: record.listing.assignedPos,
-                  creationDate: listingCreatedAt,
-                  creationType: record.listing.creationType,
-                  eventId: record.listing.eventId,
-                  eventName: record.listing.eventName,
-                  exchange: record.listing.exchange,
-                  exchangesForSale: record.listing.exchangesForSale,
-                  extraFee: this.parseDecimalForDb(record.listing.extraFee),
-                  faceValue: this.parseDecimalForDb(record.listing.faceValue),
-                  lastPosModificationDate: this.parseDateField(record.listing.lastPosModificationDate),
-                  lowerPrice: this.parseDecimalForDb(record.listing.lowerPrice),
-                  offerId: record.listing.offerId,
-                  originalSection: record.listing.originalSection,
-                  placesIds: record.listing.placesIds,
-                  price: this.parseDecimalForDb(record.listing.price),
-                  priceMultiplier: this.parseDecimalForDb(record.listing.priceMultiplier),
-                  pricingRuleMultiplierChangeTime: this.parseDateField(record.listing.pricingRuleMultiplierChangeTime),
-                  quality: this.parseDecimalForDb(record.listing.quality),
-                  quantity: record.listing.quantity,
-                  row: record.listing.row,
-                  rulePriceMultiplierIndex: record.listing.rulePriceMultiplierIndex,
-                  section: record.listing.section,
-                  splitRule: record.listing.splitRule,
-                  startRow: record.listing.startRow,
-                  status: record.listing.status,
-                  statusChangeDate: this.parseDateField(record.listing.statusChangeDate),
-                  subPlatform: record.listing.subPlatform,
-                  ticketTypeName: record.listing.ticketTypeName,
-                  venueName: record.listing.venueName,
-                  tags: record.listing.tags,
-                  fees: record.listing.fees,
-                  sourcePayload: record.listing.sourcePayload,
-                  createdAt: listingCreatedAt,
-                  updatedAt: listingUpdatedAt,
-                };
-              })
-              .filter((row): row is NonNullable<typeof row> => Boolean(row)),
-          )
-          .onConflictDoUpdate({
-            target: listings.sourceListingId,
-            set: {
-              saleId: sql`EXCLUDED.sale_id`,
-              listingId: sql`EXCLUDED.listing_id`,
-              adviceIndex: sql`EXCLUDED.advice_index`,
-              area: sql`EXCLUDED.area`,
-              assignedPos: sql`EXCLUDED.assigned_pos`,
-              creationDate: sql`EXCLUDED.creation_date`,
-              creationType: sql`EXCLUDED.creation_type`,
-              eventId: sql`EXCLUDED.event_id`,
-              eventName: sql`EXCLUDED.event_name`,
-              exchange: sql`EXCLUDED.exchange`,
-              exchangesForSale: sql`EXCLUDED.exchanges_for_sale`,
-              extraFee: sql`EXCLUDED.extra_fee`,
-              faceValue: sql`EXCLUDED.face_value`,
-              lastPosModificationDate: sql`EXCLUDED.last_pos_modification_date`,
-              lowerPrice: sql`EXCLUDED.lower_price`,
-              offerId: sql`EXCLUDED.offer_id`,
-              originalSection: sql`EXCLUDED.original_section`,
-              placesIds: sql`EXCLUDED.places_ids`,
-              price: sql`EXCLUDED.price`,
-              priceMultiplier: sql`EXCLUDED.price_multiplier`,
-              pricingRuleMultiplierChangeTime: sql`EXCLUDED.pricing_rule_multiplier_change_time`,
-              quality: sql`EXCLUDED.quality`,
-              quantity: sql`EXCLUDED.quantity`,
-              row: sql`EXCLUDED.row`,
-              rulePriceMultiplierIndex: sql`EXCLUDED.rule_price_multiplier_index`,
-              section: sql`EXCLUDED.section`,
-              splitRule: sql`EXCLUDED.split_rule`,
-              startRow: sql`EXCLUDED.start_row`,
-              status: sql`EXCLUDED.status`,
-              statusChangeDate: sql`EXCLUDED.status_change_date`,
-              subPlatform: sql`EXCLUDED.sub_platform`,
-              ticketTypeName: sql`EXCLUDED.ticket_type_name`,
-              venueName: sql`EXCLUDED.venue_name`,
-              tags: sql`EXCLUDED.tags`,
-              fees: sql`EXCLUDED.fees`,
-              sourcePayload: sql`EXCLUDED.source_payload`,
-              updatedAt: new Date(),
-            },
-          });
+            if (!listingCreatedAt) {
+              listingCreatedAt = this.parseDateField(record.createdAt);
+            }
+
+            if (!listingCreatedAt) {
+              listingCreatedAt = new Date();
+            }
+
+            const listingUpdatedAt =
+              this.parseDateField(record.listing.statusChangeDate) ??
+              this.parseDateField(record.updatedAt) ??
+              new Date();
+
+            return {
+              saleId,
+              sourceListingId: item.sourceListingId,
+              listingId: record.listing.listingId,
+              adviceIndex: record.listing.adviceIndex,
+              area: record.listing.area,
+              assignedPos: record.listing.assignedPos,
+              creationDate: listingCreatedAt,
+              creationType: record.listing.creationType,
+              eventId: record.listing.eventId,
+              eventName: record.listing.eventName,
+              exchange: record.listing.exchange,
+              exchangesForSale: record.listing.exchangesForSale,
+              extraFee: this.parseDecimalForDb(record.listing.extraFee),
+              faceValue: this.parseDecimalForDb(record.listing.faceValue),
+              lastPosModificationDate: this.parseDateField(record.listing.lastPosModificationDate),
+              lowerPrice: this.parseDecimalForDb(record.listing.lowerPrice),
+              offerId: record.listing.offerId,
+              originalSection: record.listing.originalSection,
+              placesIds: record.listing.placesIds,
+              price: this.parseDecimalForDb(record.listing.price),
+              priceMultiplier: this.parseDecimalForDb(record.listing.priceMultiplier),
+              pricingRuleMultiplierChangeTime: this.parseDateField(record.listing.pricingRuleMultiplierChangeTime),
+              quality: this.parseDecimalForDb(record.listing.quality),
+              quantity: record.listing.quantity,
+              row: record.listing.row,
+              rulePriceMultiplierIndex: record.listing.rulePriceMultiplierIndex,
+              section: record.listing.section,
+              splitRule: record.listing.splitRule,
+              startRow: record.listing.startRow,
+              status: record.listing.status,
+              statusChangeDate: this.parseDateField(record.listing.statusChangeDate),
+              subPlatform: record.listing.subPlatform,
+              ticketTypeName: record.listing.ticketTypeName,
+              venueName: record.listing.venueName,
+              tags: record.listing.tags,
+              fees: record.listing.fees,
+              createdAt: listingCreatedAt,
+              updatedAt: listingUpdatedAt,
+            };
+          })
+          .filter((row): row is NonNullable<typeof row> => Boolean(row));
+
+        if (rows.length > 0) {
+          await tx
+            .insert(listings)
+            .values(rows)
+            .onConflictDoUpdate({
+              target: listings.sourceListingId,
+              set: {
+                saleId: sql`EXCLUDED.sale_id`,
+                listingId: sql`EXCLUDED.listing_id`,
+                adviceIndex: sql`EXCLUDED.advice_index`,
+                area: sql`EXCLUDED.area`,
+                assignedPos: sql`EXCLUDED.assigned_pos`,
+                creationDate: sql`EXCLUDED.creation_date`,
+                creationType: sql`EXCLUDED.creation_type`,
+                eventId: sql`EXCLUDED.event_id`,
+                eventName: sql`EXCLUDED.event_name`,
+                exchange: sql`EXCLUDED.exchange`,
+                exchangesForSale: sql`EXCLUDED.exchanges_for_sale`,
+                extraFee: sql`EXCLUDED.extra_fee`,
+                faceValue: sql`EXCLUDED.face_value`,
+                lastPosModificationDate: sql`EXCLUDED.last_pos_modification_date`,
+                lowerPrice: sql`EXCLUDED.lower_price`,
+                offerId: sql`EXCLUDED.offer_id`,
+                originalSection: sql`EXCLUDED.original_section`,
+                placesIds: sql`EXCLUDED.places_ids`,
+                price: sql`EXCLUDED.price`,
+                priceMultiplier: sql`EXCLUDED.price_multiplier`,
+                pricingRuleMultiplierChangeTime: sql`EXCLUDED.pricing_rule_multiplier_change_time`,
+                quality: sql`EXCLUDED.quality`,
+                quantity: sql`EXCLUDED.quantity`,
+                row: sql`EXCLUDED.row`,
+                rulePriceMultiplierIndex: sql`EXCLUDED.rule_price_multiplier_index`,
+                section: sql`EXCLUDED.section`,
+                splitRule: sql`EXCLUDED.split_rule`,
+                startRow: sql`EXCLUDED.start_row`,
+                status: sql`EXCLUDED.status`,
+                statusChangeDate: sql`EXCLUDED.status_change_date`,
+                subPlatform: sql`EXCLUDED.sub_platform`,
+                ticketTypeName: sql`EXCLUDED.ticket_type_name`,
+                venueName: sql`EXCLUDED.venue_name`,
+                tags: sql`EXCLUDED.tags`,
+                fees: sql`EXCLUDED.fees`,
+                updatedAt: new Date(),
+              },
+            });
+        }
       }
     });
 
     return {
-      processedCount: uniqueRecords.length,
+      processedCount: dedupedBySource.length,
       insertedCount,
       updatedCount,
     };
@@ -810,8 +825,8 @@ export class SalesRepository {
       const pattern = `%${filter.search.trim()}%`;
       whereClauses.push(
         sql`
-          (${sales.externalSaleId} ILIKE ${pattern}
-            OR ${listings.listingId} ILIKE ${pattern}
+          (
+            ${listings.listingId} ILIKE ${pattern}
             OR ${listings.eventId} ILIKE ${pattern}
             OR ${sales.buyerEmail} ILIKE ${pattern})
         `,
@@ -1099,10 +1114,8 @@ export class SalesRepository {
   ): Sale {
     return {
       id: row.sale.id,
-      externalSaleId: row.sale.externalSaleId,
       listing: this.normalizeListing(row.listing),
       buyerEmail: row.sale.buyerEmail,
-      sourcePayload: row.sale.sourcePayload,
       status: this.normalizeSaleStatus(row.sale.status),
       deliveryDelayAt: row.sale.deliveryDelayAt ? this.toDateString(row.sale.deliveryDelayAt) : null,
       problemReason: row.sale.problemReason ?? null,
@@ -1160,7 +1173,6 @@ export class SalesRepository {
       venueName: listing.venueName,
       fees: listing.fees,
       tags: listing.tags ?? [],
-      sourcePayload: listing.sourcePayload ?? null,
       createdAt: listing.createdAt ? this.toDateString(listing.createdAt) : new Date().toISOString(),
       updatedAt: listing.updatedAt ? this.toDateString(listing.updatedAt) : new Date().toISOString(),
     };

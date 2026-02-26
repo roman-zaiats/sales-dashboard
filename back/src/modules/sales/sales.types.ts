@@ -27,11 +27,6 @@ export type PaginationInput = {
   limit?: number;
 };
 
-export type SalesSourcePayload = {
-  raw?: Record<string, unknown>;
-  sourceId?: string;
-};
-
 export type ListingFee = {
   type?: string | null;
   description?: string | null;
@@ -74,7 +69,6 @@ export type ListingSource = {
   ticketTypeName?: string | null;
   venueName?: string | null;
   fees?: ListingFee[];
-  sourcePayload?: SalesSourcePayload | null;
 };
 
 export type Listing = {
@@ -114,7 +108,6 @@ export type Listing = {
   venueName: string | null;
   fees: ListingFee[] | null;
   tags: string[];
-  sourcePayload: SalesSourcePayload | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -125,7 +118,6 @@ export type SaleSourceRecord = {
   createdAt: string | null;
   updatedAt: string | null;
   sourceStatus: SaleStatus | null;
-  sourcePayload: SalesSourcePayload | null;
   listing: ListingSource;
 };
 
@@ -167,10 +159,8 @@ export type SaleComment = {
 
 export type Sale = {
   id: string;
-  externalSaleId: string;
   listing: Listing | null;
   buyerEmail?: string | null;
-  sourcePayload?: SalesSourcePayload | null;
   status: SaleStatus;
   deliveryDelayAt: string | null;
   problemReason: string | null;

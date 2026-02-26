@@ -3,8 +3,6 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE IF NOT EXISTS sales (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  external_sale_id TEXT NOT NULL UNIQUE,
-  source_payload JSONB,
   buyer_email TEXT,
   status TEXT NOT NULL,
   delivery_delay_at TIMESTAMPTZ,
@@ -15,6 +13,8 @@ CREATE TABLE IF NOT EXISTS sales (
   source_sync_state TEXT
 );
 
+ALTER TABLE "sales" DROP COLUMN IF EXISTS external_sale_id;
+ALTER TABLE "sales" DROP COLUMN IF EXISTS source_payload;
 ALTER TABLE "sales" DROP COLUMN IF EXISTS listing_id;
 ALTER TABLE "sales" DROP COLUMN IF EXISTS event_id;
 ALTER TABLE "sales" DROP COLUMN IF EXISTS quantity;
@@ -59,10 +59,11 @@ CREATE TABLE IF NOT EXISTS listings (
   ticket_type_name TEXT,
   venue_name TEXT,
   fees JSONB,
-  source_payload JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE "listings" DROP COLUMN IF EXISTS source_payload;
 
 CREATE TABLE IF NOT EXISTS tags (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

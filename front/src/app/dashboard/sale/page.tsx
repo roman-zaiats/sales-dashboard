@@ -26,16 +26,6 @@ const formatDate = (value?: string | null): string => {
   return parsed.toLocaleString();
 };
 
-const formatPayload = (payload: unknown): string => {
-  try {
-    const rendered = JSON.stringify(payload, null, 2);
-
-    return rendered === undefined ? '—' : rendered;
-  } catch {
-    return '—';
-  }
-};
-
 export const SaleDetailPage = () => {
   const { id } = useParams<'id'>();
 
@@ -258,11 +248,11 @@ export const SaleDetailPage = () => {
           emptyMessage="Sale not found."
           onRetry={handleRetry}
         >
-          {sale ? (
-            <Card>
+        {sale ? (
+              <Card>
               <CardHeader className="space-y-0">
-                <h3 className="text-lg font-semibold">{sale.externalSaleId}</h3>
-                <p className="text-sm text-muted-foreground">{saleDisplayLabel(sale)}</p>
+                <h3 className="text-lg font-semibold">{saleDisplayLabel(sale)}</h3>
+                <p className="text-sm text-muted-foreground">{sale.status}</p>
               </CardHeader>
               <CardContent className="px-5">
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -309,11 +299,6 @@ export const SaleDetailPage = () => {
                     />
                   </div>
                 </div>
-
-                <h4 className="mt-6 mb-2 text-base font-semibold">Source Payload</h4>
-                <pre className="overflow-x-auto rounded-lg border border-border bg-muted p-3 text-xs text-muted-foreground">
-                  {formatPayload(sale.sourcePayload)}
-                </pre>
 
                 <div className="mt-6">
                   <SaleComments comments={sale.comments} onAddComment={handleCommentAdd} isSubmitting={isBusy} />

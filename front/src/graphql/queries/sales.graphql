@@ -39,14 +39,12 @@ fragment ListingData on Listing {
     description
     amount
   }
-  sourcePayload
   createdAt
   updatedAt
 }
 
 fragment SaleDashboardData on Sale {
   id
-  externalSaleId
   buyerEmail
   listing {
     ...ListingData
@@ -54,7 +52,6 @@ fragment SaleDashboardData on Sale {
   status
   deliveryDelayAt
   problemReason
-  sourcePayload
   createdAt
   updatedAt
   filledBy {

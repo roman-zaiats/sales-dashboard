@@ -24,9 +24,9 @@ export const SaleBoardCard = forwardRef<HTMLLIElement, SaleBoardCardProps>(
     return (
       <li ref={ref} className={combinedClassName} {...liProps}>
         <Card className="shadcn-card">
-            <CardHeader className="shadcn-card-header">
-            <CardTitle className="shadcn-card-title">{sale.externalSaleId}</CardTitle>
-            <CardDescription className="shadcn-card-description">{saleDisplayLabel(sale)}</CardDescription>
+          <CardHeader className="shadcn-card-header">
+            <CardTitle className="shadcn-card-title">{saleDisplayLabel(sale)}</CardTitle>
+            <CardDescription className="shadcn-card-description">{sale.status}</CardDescription>
           </CardHeader>
           <CardContent className="px-4 py-2">
             <p className="text-xs text-muted-foreground">Delay: {formatDelay(sale.deliveryDelayAt)}</p>

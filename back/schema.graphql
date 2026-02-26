@@ -41,10 +41,8 @@ type User {
 
 type Sale {
   id: ID!
-  externalSaleId: String!
   listing: Listing
   buyerEmail: String
-  sourcePayload: JSON
   status: SaleStatus!
   deliveryDelayAt: DateTime
   problemReason: String
@@ -103,7 +101,6 @@ type Listing {
   ticketTypeName: String
   venueName: String
   fees: [ListingFee!]
-  sourcePayload: JSON
   createdAt: DateTime!
   updatedAt: DateTime!
 }
